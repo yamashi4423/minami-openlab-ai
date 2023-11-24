@@ -56,6 +56,7 @@ export class Viewer {
 
       this._scene.add(this.model.vrm.scene);
 
+      // アニメーションの読み込み
       const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));
       if (vrma) this.model.loadAnimation(vrma);
 
@@ -107,7 +108,7 @@ export class Viewer {
       this.resize();
     });
     this.isReady = true;
-    this.update();
+    this.update(); // アニメーションをループ
   }
 
   /**
@@ -149,6 +150,7 @@ export class Viewer {
     }
   }
 
+  // アニメーションをループ　https://note.com/npaka/n/ne34d7b70743c の 2.VRMの表示の animate()関数
   public update = () => {
     requestAnimationFrame(this.update);
     const delta = this._clock.getDelta();
