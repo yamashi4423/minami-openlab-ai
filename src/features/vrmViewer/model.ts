@@ -54,6 +54,7 @@ export class Model {
    * VRMアニメーションを読み込む
    *
    * https://github.com/vrm-c/vrm-specification/blob/master/specification/VRMC_vrm_animation-1.0/README.ja.md
+   * もしくは，https://note.com/npaka/n/naf87662867d1
    */
   public async loadAnimation(vrmAnimation: VRMAnimation): Promise<void> {
     const { vrm, mixer } = this;
