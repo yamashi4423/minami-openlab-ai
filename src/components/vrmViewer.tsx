@@ -2,20 +2,24 @@ import { useContext, useCallback } from "react";
 import { ViewerContext } from "../features/vrmViewer/viewerContext";
 import { buildUrl } from "@/utils/buildUrl";
 
+const MODEL_NAME = "/risaju_v4.vrm";
+
 export default function VrmViewer() {
   const { viewer } = useContext(ViewerContext);
 
   const canvasRef = useCallback(
     (canvas: HTMLCanvasElement) => {
       if (canvas) {
-        viewer.setup(canvas);
-        viewer.loadVrm(buildUrl("/AvatarSample_B.vrm"));
+        viewer.setup(canvas); // レンダラーとカメラを準備
+        viewer.loadVrm(buildUrl(MODEL_NAME)); // VRMモデルを読み込む　ここでアニメーションファイル（.vrma）も読み込む
 
         // Drag and DropでVRMを差し替え
+        // Drag
         canvas.addEventListener("dragover", function (event) {
           event.preventDefault();
         });
 
+        // Drop
         canvas.addEventListener("drop", function (event) {
           event.preventDefault();
 
