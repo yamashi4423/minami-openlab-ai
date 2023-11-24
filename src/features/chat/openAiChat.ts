@@ -1,6 +1,8 @@
 import { Configuration, OpenAIApi } from "openai";
 import { Message } from "../messages/messages";
 
+const MODEL_NAME = "gpt-4";
+
 export async function getChatResponse(messages: Message[], apiKey: string) {
   if (!apiKey) {
     throw new Error("Invalid API Key");
@@ -16,7 +18,7 @@ export async function getChatResponse(messages: Message[], apiKey: string) {
   const openai = new OpenAIApi(configuration);
 
   const { data } = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
+    model: MODEL_NAME,
     messages: messages,
   });
 
@@ -38,11 +40,12 @@ export async function getChatResponseStream(
     "Content-Type": "application/json",
     Authorization: `Bearer ${apiKey}`,
   };
+  console.log("messages: ", messages);
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     headers: headers,
     method: "POST",
     body: JSON.stringify({
-      model: "gpt-3.5-turbo",
+      model: MODEL_NAME,
       messages: messages,
       stream: true,
       max_tokens: 200,
