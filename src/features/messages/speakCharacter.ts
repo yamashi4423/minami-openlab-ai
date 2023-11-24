@@ -32,15 +32,19 @@ const createSpeakCharacter = () => {
     prevFetchPromise = fetchPromise;
     prevSpeakPromise = Promise.all([fetchPromise, prevSpeakPromise]).then(
       ([audioBuffer]) => {
+        console.log("onStart() 会話スタート");
         onStart?.();
+        // 話してないとき？
         if (!audioBuffer) {
           return;
         }
+        // 話してるとき
         return viewer.model?.speak(audioBuffer, screenplay);
       }
     );
     prevSpeakPromise.then(() => {
       onComplete?.();
+      console.log("onComplete() 会話終了（isSpeakingをFalseに）");
     });
   };
 };
