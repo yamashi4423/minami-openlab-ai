@@ -1,9 +1,11 @@
 import { MessageInput } from "@/components/messageInput";
+import { useDidUpdateEffect } from "@/hooks/useDidUpdateEffect";
 import { useState, useEffect, useCallback } from "react";
 
 type Props = {
   isChatProcessing: boolean;
   onChatProcessStart: (text: string) => void;
+  isSpeaking: boolean | null;
 };
 
 /**
@@ -15,6 +17,7 @@ type Props = {
 export const MessageInputContainer = ({
   isChatProcessing,
   onChatProcessStart,
+  isSpeaking,
 }: Props) => {
   const [userMessage, setUserMessage] = useState("");
   const [speechRecognition, setSpeechRecognition] =
@@ -24,6 +27,7 @@ export const MessageInputContainer = ({
   // 音声認識の結果を処理する
   const handleRecognitionResult = useCallback(
     (event: SpeechRecognitionEvent) => {
+      console.log("handleRecognitionResult");
       const text = event.results[0][0].transcript;
       setUserMessage(text);
 
@@ -40,8 +44,12 @@ export const MessageInputContainer = ({
   // 無音が続いた場合も終了する
   const handleRecognitionEnd = useCallback(() => {
     setIsMicRecording(false);
+    console.log("handleRecognitionEnd（マイクのマークを変更するだけ）");
+    // speechRecognition?.start();
+    // setIsMicRecording(true);
   }, []);
 
+  // マイクボタンをおしたとき
   const handleClickMicButton = useCallback(() => {
     if (isMicRecording) {
       speechRecognition?.abort();
@@ -51,9 +59,11 @@ export const MessageInputContainer = ({
     }
 
     speechRecognition?.start();
+    console.log("録音開始");
     setIsMicRecording(true);
   }, [isMicRecording, speechRecognition]);
 
+  // 送信ボタンをおしたとき
   const handleClickSendButton = useCallback(() => {
     onChatProcessStart(userMessage);
   }, [onChatProcessStart, userMessage]);
@@ -66,16 +76,44 @@ export const MessageInputContainer = ({
     if (!SpeechRecognition) {
       return;
     }
+
+    // 音声認識の初期化・設定
     const recognition = new SpeechRecognition();
     recognition.lang = "ja-JP";
     recognition.interimResults = true; // 認識の途中結果を返す
-    recognition.continuous = false; // 発言の終了時に認識を終了する
+    recognition.continuous = false; // 発言の終了時に認識を終了する（Trueにすると1分以上音声認識してくれるけど，自分の声を認識しちゃう）
 
     recognition.addEventListener("result", handleRecognitionResult);
     recognition.addEventListener("end", handleRecognitionEnd);
 
     setSpeechRecognition(recognition);
-  }, [handleRecognitionResult, handleRecognitionEnd]);
+
+    // 1秒ごとに音声認識
+    // const intervalId = setInterval(() => {
+    //   recognition?.start();
+    //   setIsMicRecording(true);
+    // }, 1000);
+  }, [handleRecognitionResult, handleRecognitionEnd, isSpeaking]);
+
+  // これ一番最初実行してね？？？
+  // ときどき，ストリーミング中に自分の声を認識しちゃう（文字起こしされてもOpenAIAPIは叩くわけではなさそう）
+  // あともしかすると，音声認識の時間が短くなっちゃってる
+  // [たぶん解決]ときどき，しゃべらなくなる（isSpeakigがtrueとfalseが逆になってる）．マウント時とか関係ない？
+  useDidUpdateEffect(() => {
+    // TODO: ときどき自分の声を認識しちゃうから，0.5秒だけ待機して，録音開始を遅らせる => だめだ．少し認識しちゃう．．．
+    console.log("isSpeakingを更新: ", isSpeaking);
+    if (!isSpeaking) {
+      setTimeout(() => {
+        // 1秒経ってもまだ話していなかったら流石にストリーミング中じゃないので録音開始
+        if (!isSpeaking) {
+          speechRecognition?.start();
+          console.log("録音開始");
+        } else {
+          console.log("ストリーミング中");
+        }
+      }, 1000);
+    }
+  }, [isSpeaking]);
 
   useEffect(() => {
     if (!isChatProcessing) {

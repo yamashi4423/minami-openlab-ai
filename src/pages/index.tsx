@@ -15,6 +15,7 @@ import { Introduction } from "@/components/introduction";
 import { Menu } from "@/components/menu";
 import { GitHubLink } from "@/components/githubLink";
 import { Meta } from "@/components/meta";
+import FaceRec from "@/components/faceRec";
 
 export default function Home() {
   const { viewer } = useContext(ViewerContext);
@@ -26,19 +27,27 @@ export default function Home() {
   const [chatProcessing, setChatProcessing] = useState(false);
   const [chatLog, setChatLog] = useState<Message[]>([]);
   const [assistantMessage, setAssistantMessage] = useState("");
+  const [onCamera, setOnCamera] = useState<boolean | null>(false); // カメラを使ってるかどうか
+  const [isSpeaking, setIsSpeaking] = useState<boolean | null>(false); // 話しているかどうか
 
   useEffect(() => {
-    if (window.localStorage.getItem("chatVRMParams")) {
-      const params = JSON.parse(
-        window.localStorage.getItem("chatVRMParams") as string
-      );
-      setSystemPrompt(params.systemPrompt);
-      setKoeiroParam(params.koeiroParam);
-      setChatLog(params.chatLog);
-    }
+    // https://de-milestones.com/next-js_environmental_variables_unread/
+    setOpenAiKey(String(process.env.NEXT_PUBLIC_OPENAI_API_KEY));
+    setKoeiromapKey(String(process.env.NEXT_PUBLIC_COEIROMAP_API_KEY));
+
+    // ローカルストレージから読み込む
+    // if (window.localStorage.getItem("chatVRMParams")) {
+    //   const params = JSON.parse(
+    //     window.localStorage.getItem("chatVRMParams") as string
+    //   );
+    //   setSystemPrompt(params.systemPrompt);
+    //   setKoeiroParam(params.koeiroParam);
+    //   setChatLog(params.chatLog);
+    // }
   }, []);
 
   useEffect(() => {
+    // ローカルストレージに保存
     process.nextTick(() =>
       window.localStorage.setItem(
         "chatVRMParams",
@@ -67,7 +76,14 @@ export default function Home() {
       onStart?: () => void,
       onEnd?: () => void
     ) => {
-      speakCharacter(screenplay, viewer, koeiromapKey, onStart, onEnd);
+      speakCharacter(
+        screenplay,
+        viewer,
+        koeiromapKey,
+        () => setIsSpeaking(true),
+        () => setIsSpeaking(false)
+      );
+      console.log("音声を再生");
     },
     [viewer, koeiromapKey]
   );
@@ -96,10 +112,12 @@ export default function Home() {
 
       // Chat GPTへ
       const messages: Message[] = [
+        // プロンプト
         {
           role: "system",
           content: systemPrompt,
         },
+        // ログ
         ...messageLog,
       ];
 
@@ -157,6 +175,8 @@ export default function Home() {
             const aiText = `${tag} ${sentence}`;
             const aiTalks = textsToScreenplay([aiText], koeiroParam);
             aiTextLog += aiText;
+            console.log("aiText: ", aiText);
+            console.log("aiTalks: ", aiTalks);
 
             // 文ごとに音声を生成 & 再生、返答を表示
             const currentAssistantMessage = sentences.join(" ");
@@ -187,16 +207,17 @@ export default function Home() {
   return (
     <div className={"font-M_PLUS_2"}>
       <Meta />
-      <Introduction
+      {/* <Introduction
         openAiKey={openAiKey}
         koeiroMapKey={koeiromapKey}
         onChangeAiKey={setOpenAiKey}
         onChangeKoeiromapKey={setKoeiromapKey}
-      />
+      /> */}
       <VrmViewer />
       <MessageInputContainer
         isChatProcessing={chatProcessing}
         onChatProcessStart={handleSendChat}
+        isSpeaking={isSpeaking}
       />
       <Menu
         openAiKey={openAiKey}
@@ -213,7 +234,38 @@ export default function Home() {
         handleClickResetSystemPrompt={() => setSystemPrompt(SYSTEM_PROMPT)}
         onChangeKoeiromapKey={setKoeiromapKey}
       />
-      <GitHubLink />
+      {/* <GitHubLink /> */}
+      <button
+        style={{
+          backgroundColor: "#29ADB2",
+          padding: ".5rem 1rem",
+          margin: "5rem 1rem",
+          borderRadius: "0.5rem",
+          fontWeight: "bold",
+          color: "whitesmoke",
+        }}
+        onClick={() => {
+          setOnCamera(true);
+        }}
+      >
+        カメラオン
+      </button>
+      <button
+        style={{
+          backgroundColor: "#B31312",
+          padding: ".5rem 1rem",
+          margin: "5rem 0",
+          borderRadius: "0.5rem",
+          fontWeight: "bold",
+          color: "whitesmoke",
+        }}
+        onClick={() => {
+          setOnCamera(false);
+        }}
+      >
+        カメラオフ
+      </button>
+      {onCamera ? <FaceRec onChatProcessStart={handleSendChat} /> : undefined}
     </div>
   );
 }
