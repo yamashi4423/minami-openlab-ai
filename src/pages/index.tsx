@@ -29,6 +29,7 @@ export default function Home() {
   const [assistantMessage, setAssistantMessage] = useState("");
   const [onCamera, setOnCamera] = useState<boolean | null>(false); // カメラを使ってるかどうか
   const [isSpeaking, setIsSpeaking] = useState<boolean | null>(false); // 話しているかどうか
+  const [isStreaming, setIsStreaming] = useState<boolean | null>(false); // ストリームしているかどうか
 
   useEffect(() => {
     // https://de-milestones.com/next-js_environmental_variables_unread/
@@ -138,9 +139,13 @@ export default function Home() {
       let tag = "";
       const sentences = new Array<string>();
       try {
+        setIsStreaming(true);
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {
+            setIsStreaming(false);
+            break;
+          }
 
           receivedMessage += value;
 
@@ -219,6 +224,7 @@ export default function Home() {
         onChatProcessStart={handleSendChat}
         isSpeaking={isSpeaking}
         setIsSpeaking={setIsSpeaking}
+        isStreaming={isStreaming}
       />
       <Menu
         openAiKey={openAiKey}

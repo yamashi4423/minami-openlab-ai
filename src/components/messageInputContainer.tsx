@@ -7,6 +7,7 @@ type Props = {
   onChatProcessStart: (text: string) => void;
   isSpeaking: boolean | null;
   setIsSpeaking: React.Dispatch<React.SetStateAction<boolean|null>>,
+  isStreaming: boolean | null;
 };
 
 /**
@@ -20,6 +21,7 @@ export const MessageInputContainer = ({
   onChatProcessStart,
   isSpeaking,
   setIsSpeaking,
+  isStreaming
 }: Props) => {
   const [userMessage, setUserMessage] = useState("");
   const [speechRecognition, setSpeechRecognition] =
@@ -82,22 +84,24 @@ export const MessageInputContainer = ({
     }
 
     // 音声認識の初期化・設定
-    const recognition = new SpeechRecognition();
-    recognition.lang = "ja-JP";
-    recognition.interimResults = true; // 認識の途中結果を返す
-    recognition.continuous = false; // 発言の終了時に認識を終了する（Trueにすると1分以上音声認識してくれるけど，自分の声を認識しちゃう）
+    if (!isSpeaking) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = "ja-JP";
+      recognition.interimResults = true; // 認識の途中結果を返す
+      recognition.continuous = false; // 発言の終了時に認識を終了する（Trueにすると1分以上音声認識してくれるけど，自分の声を認識しちゃう）
 
-    recognition.addEventListener("result", handleRecognitionResult);
-    recognition.addEventListener("end", handleRecognitionEnd);
+      recognition.addEventListener("result", handleRecognitionResult);
+      recognition.addEventListener("end", handleRecognitionEnd);
 
-    setSpeechRecognition(recognition);
+      setSpeechRecognition(recognition);
+    }
 
     // 1秒ごとに音声認識
     // const intervalId = setInterval(() => {
     //   recognition?.start();
     //   setIsMicRecording(true);
     // }, 1000);
-  }, [handleRecognitionResult, handleRecognitionEnd]);
+  }, [handleRecognitionResult, handleRecognitionEnd, isSpeaking]);
 
   // これ一番最初実行してね？？？
   // ときどき，ストリーミング中に自分の声を認識しちゃう（文字起こしされてもOpenAIAPIは叩くわけではなさそう）
@@ -108,13 +112,20 @@ export const MessageInputContainer = ({
     console.log("isSpeakingを更新: ", isSpeaking);
     
     // 発話終了時
-    if (!isSpeaking) {
-      // setTimeout(() => {
+    // if (!isSpeaking) {
+    // setTimeout(() => {
+    console.log("isStreaming: ", isStreaming);
+    console.log("isSpeaking: ", isSpeaking);
+    if (!isSpeaking && !isStreaming) { // 会話中ではなく，かつストリーミング中でないとき
         speechRecognition?.start();
+        setIsMicRecording(true);
         console.log("録音開始");
-      // }, 2000)
-    } else { // 発話開始時
+        // }
+      // }, 1000)
+    }
+    if(isSpeaking || isStreaming){ // 会話中，もしくはストリーミング中は録音できないようにする
       speechRecognition?.abort();
+      setIsMicRecording(false);
       console.log("録音終了");
     }
   }, [isSpeaking]);
