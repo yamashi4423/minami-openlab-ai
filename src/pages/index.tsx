@@ -41,7 +41,7 @@ export default function Home() {
   const [onCamera, setOnCamera] = useState<boolean | null>(false); // カメラを使ってるかどうか
   const [isSpeaking, setIsSpeaking] = useState<boolean | null>(false); // 話しているかどうか
   const [isStreaming, setIsStreaming] = useState<boolean | null>(false); // ストリームしているかどうか
-  const [topicNumber, setTopicNumber] = useState<number | null>(0); // トピック番号
+  const [topicNumber, setTopicNumber] = useState<number | null>(6); // トピック番号
 
   useEffect(() => {
     // https://de-milestones.com/next-js_environmental_variables_unread/
@@ -91,12 +91,19 @@ export default function Home() {
     let prompt = SELECT_PROMPT;
     // "以下の文章から話題を特定し，話題の番号を返してください．話題の番号は，0. 研究室のテーマ全体に関する対話, 1. 「幼児の言語発達」に関する対話, 2. 「論文執筆支援」に関する対話, 3. 「認知症介護情報からの知識処理」に関する対話, 4. 「音声認識」に関する対話, 5. 「対話システム」に関する対話, 6. その他の対話，とします．\n\n";
 
-    let atterance = log.slice(-1)[0].content;
-    console.log("話題特定用プロンプト", atterance);
+    // const selectNumber = 3; // 取り出す数
+    // if (log)
+    // let atterance = log.slice(-3)[0].content;
+    // atterance = log.slice(-2)[0].content;
+    // atterance = log.slice(-1)[0].content;
+
+    const utterances = log.slice(-3).map((entry) => entry.content);
+    const utteranceContent = utterances.join();
+    console.log("話題特定用プロンプト", utteranceContent);
 
     const functionGetTopic = {
       name: "getTopic",
-      description: "発話から話題を特定し，文字列を返す",
+      description: "対話履歴から話題を特定し，文字列を返す",
       parameters: {
         type: "object",
         properties: {
@@ -121,27 +128,31 @@ export default function Home() {
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       //messages: [{ role: "system", content: prompt }],
-      messages: [{ role: "user", content: atterance }],
+      messages: [{ role: "user", content: utteranceContent }],
       temperature: 0.0,
       functions: [functionGetTopic],
     });
 
-    const answer = response.choices[0].message?.content;
-    console.log("話題特定結果：", answer);
+    const functionCall = response.choices[0].message?.function_call;
+    let topic = 6;
 
-    let topic = 0;
-    if (answer == "幼児") {
-      topic = 1;
-    } else if (answer == "論文") {
-      topic = 2;
-    } else if (answer == "認知症") {
-      topic = 3;
-    } else if (answer == "音声認識") {
-      topic = 4;
-    } else if (answer == "対話システム") {
-      topic = 5;
-    } else {
-      topic = 6;
+    if (functionCall) {
+      const args = JSON.parse(functionCall.arguments || "{}");
+      console.log("args: ", args.topic);
+
+      if (args.topic == "幼児") {
+        topic = 1;
+      } else if (args.topic == "論文") {
+        topic = 2;
+      } else if (args.topic == "認知症") {
+        topic = 3;
+      } else if (args.topic == "音声認識") {
+        topic = 4;
+      } else if (args.topic == "対話システム") {
+        topic = 5;
+      } else {
+        topic = 6;
+      }
     }
     return topic;
   };
@@ -192,24 +203,33 @@ export default function Home() {
       // TODO: チャットログから話題を特定して，システムプロンプトを選択
       getTopic(messageLog).then((topic: number) => {
         setTopicNumber(topic);
-        console.log("topic: ", topic);
+        console.log("topic: ", topicNumber);
       });
+      console.log("topic: ", topicNumber);
 
-      // if (topicNumber == 0) {
-      //   setSystemPrompt(SYSTEM_PROMPT);
-      // } else if (topicNumber == 1) {
-      //   setSystemPrompt(SYSTEM_PROMPT_1);
-      // } else if (topicNumber == 2) {
-      //   setSystemPrompt(SYSTEM_PROMPT_2);
-      // } else if (topicNumber == 3) {
-      //   setSystemPrompt(SYSTEM_PROMPT_3);
-      // } else if (topicNumber == 4) {
-      //   setSystemPrompt(SYSTEM_PROMPT_4);
-      // } else if (topicNumber == 5) {
-      //   setSystemPrompt(SYSTEM_PROMPT_5);
-      // } else {
-      //   setSystemPrompt(SYSTEM_PROMPT);
-      // }
+      // const response = await openai.chat.completions.create({
+      //   model: "gpt-4",
+      //   messages: [{ role: "system", content: prompt }],
+      //   messages: [{ role: "user", content: atterance }],
+      //   temperature: 0.0,
+      //   functions: [functionGetTopic],
+      // });
+
+      if (topicNumber == 0) {
+        setSystemPrompt(SYSTEM_PROMPT);
+      } else if (topicNumber == 1) {
+        setSystemPrompt(SYSTEM_PROMPT_1);
+      } else if (topicNumber == 2) {
+        setSystemPrompt(SYSTEM_PROMPT_2);
+      } else if (topicNumber == 3) {
+        setSystemPrompt(SYSTEM_PROMPT_3);
+      } else if (topicNumber == 4) {
+        setSystemPrompt(SYSTEM_PROMPT_4);
+      } else if (topicNumber == 5) {
+        setSystemPrompt(SYSTEM_PROMPT_5);
+      } else {
+        setSystemPrompt(SYSTEM_PROMPT);
+      }
 
       console.log("今回使用するシステムプロンプト：", topicNumber);
       console.log("今回使用するシステムプロンプト：", systemPrompt);
@@ -352,7 +372,6 @@ export default function Home() {
             backgroundColor: "#29ADB2",
             padding: ".5rem 1rem",
             margin: "1rem 1rem ",
-            marginLeft: "auto",
             borderRadius: "0.5rem",
             fontWeight: "bold",
             color: "whitesmoke",
@@ -363,6 +382,22 @@ export default function Home() {
           }}
         >
           カメラオン
+        </button>
+        <button
+          style={{
+            backgroundColor: "#D80032",
+            padding: ".5rem 1rem",
+            margin: "1rem 1rem ",
+            borderRadius: "0.5rem",
+            fontWeight: "bold",
+            color: "whitesmoke",
+            zIndex: "990",
+          }}
+          onClick={() => {
+            location.reload();
+          }}
+        >
+          リセット
         </button>
       </div>
       {onCamera ? <FaceRec onChatProcessStart={handleSendChat} /> : undefined}

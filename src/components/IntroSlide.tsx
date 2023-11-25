@@ -39,17 +39,16 @@ function IntroSlide({ slideId }: { slideId: number | null }) {
         width: "800px",
         margin: "0 0 0 auto",
         padding: "2rem 2rem",
-        borderRadius: "0.5rem",
       }}
     >
-      {slides.map((slide, key) => {
+      {/* {slides.map((slide, key) => {
         return (
           <SwiperSlide key={key} style={{ zIndex: "-10" }}>
             <img src={`slides/${slide}`} />
           </SwiperSlide>
         );
-      })}
-      <SwiperSlide style={{ zIndex: "-10" }}>
+      })} */}
+      <SwiperSlide style={{ zIndex: "-10", borderRadius: "0.5rem" }}>
         <img src={`slides/slide${slideId}.png`} />
       </SwiperSlide>
     </Swiper>
