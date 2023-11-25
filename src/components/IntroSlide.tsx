@@ -14,7 +14,7 @@ import { EffectFade, Navigation, Pagination } from "swiper/modules";
 // Import Swiper styles
 import "swiper/css";
 
-function IntroSlide() {
+function IntroSlide({ slideId }: { slideId: number | null }) {
   const slides = [
     "slide1.png",
     "slide2.png",
@@ -25,35 +25,34 @@ function IntroSlide() {
   ];
 
   return (
-    <div style={{ position: "relative" }}>
-      <Swiper
-        spaceBetween={30}
-        effect={"fade"}
-        navigation={true}
-        pagination={{
-          clickable: true,
-        }}
-        modules={[EffectFade, Navigation, Pagination]}
-        className="mySwiper"
-        style={{
-          zIndex: "-10",
-          width: "700px",
-          position: "absolute",
-          top: "-8rem",
-          right: "0",
-          margin: "0 4rem",
-          borderRadius: "0.5rem",
-        }}
-      >
-        {slides.map((slide, key) => {
-          return (
-            <SwiperSlide key={key} style={{ zIndex: "-10" }}>
-              <img src={`slides/${slide}`} />
-            </SwiperSlide>
-          );
-        })}
-      </Swiper>
-    </div>
+    <Swiper
+      spaceBetween={30}
+      effect={"fade"}
+      navigation={true}
+      pagination={{
+        clickable: true,
+      }}
+      modules={[EffectFade, Navigation, Pagination]}
+      className="mySwiper"
+      style={{
+        zIndex: "-10",
+        width: "800px",
+        margin: "0 0 0 auto",
+        padding: "2rem 2rem",
+        borderRadius: "0.5rem",
+      }}
+    >
+      {slides.map((slide, key) => {
+        return (
+          <SwiperSlide key={key} style={{ zIndex: "-10" }}>
+            <img src={`slides/${slide}`} />
+          </SwiperSlide>
+        );
+      })}
+      <SwiperSlide style={{ zIndex: "-10" }}>
+        <img src={`slides/slide${slideId}.png`} />
+      </SwiperSlide>
+    </Swiper>
   );
 }
 

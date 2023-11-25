@@ -130,7 +130,15 @@ function FaceRec({ onChatProcessStart }: Props) {
   }, []);
 
   return (
-    <div style={{ position: "fixed", bottom: "0", color: "red", fontWeight: "bold" }}>
+    <div
+      style={{
+        position: "fixed",
+        // bottom: "0",
+        bottom: "-10", // カメラを隠すかどうか
+        color: "red",
+        fontWeight: "bold",
+      }}
+    >
       {/* <video /> */}
       {isDetected ? <>Detected!</> : <>Isnt Detected...</>}
       {devices.map((device: any, key) => (
@@ -138,22 +146,19 @@ function FaceRec({ onChatProcessStart }: Props) {
           {device?.label || `Device ${key + 1}`}
         </button>
       ))}
+      <Webcam
+        audio={false}
+        width={400}
+        height={1000}
+        ref={webcamRef}
+        screenshotFormat="image/jpeg"
+        videoConstraints={{ deviceId }}
+        // onUserMedia={(stream) => {
+        //   loadModels().then(() => detectAllFaces());
+        // }}
+        style={{ visibility: "hidden" }}
+      />
       <canvas id="canvas" style={{ borderRadius: "1rem" }}></canvas>
-      <div>
-        <Webcam
-          audio={false}
-          width={400}
-          height={1000}
-          ref={webcamRef}
-          screenshotFormat="image/jpeg"
-          videoConstraints={{ deviceId }}
-          // onUserMedia={(stream) => {
-          //   loadModels().then(() => detectAllFaces());
-          // }}
-          style={{ visibility: "hidden" }}
-        />
-        <></>
-      </div>
     </div>
   );
 }
