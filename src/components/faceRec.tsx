@@ -130,7 +130,7 @@ function FaceRec({ onChatProcessStart }: Props) {
   }, []);
 
   return (
-    <div style={{ position: "fixed", bottom: "0", color: "red" }}>
+    <div style={{ position: "fixed", bottom: "0", color: "red", fontWeight: "bold" }}>
       {/* <video /> */}
       {isDetected ? <>Detected!</> : <>Isnt Detected...</>}
       {devices.map((device: any, key) => (

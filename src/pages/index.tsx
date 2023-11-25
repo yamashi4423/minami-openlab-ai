@@ -218,6 +218,7 @@ export default function Home() {
         isChatProcessing={chatProcessing}
         onChatProcessStart={handleSendChat}
         isSpeaking={isSpeaking}
+        setIsSpeaking={setIsSpeaking}
       />
       <Menu
         openAiKey={openAiKey}
