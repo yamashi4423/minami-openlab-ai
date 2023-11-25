@@ -8,7 +8,15 @@ import {
 } from "@/features/messages/messages";
 import { speakCharacter } from "@/features/messages/speakCharacter";
 import { MessageInputContainer } from "@/components/messageInputContainer";
-import { SYSTEM_PROMPT } from "@/features/constants/systemPromptConstants";
+import {
+  SYSTEM_PROMPT,
+  SYSTEM_PROMPT_1,
+  SYSTEM_PROMPT_2,
+  SYSTEM_PROMPT_3,
+  SYSTEM_PROMPT_4,
+  SYSTEM_PROMPT_5,
+  SELECT_PROMPT,
+} from "@/features/constants/systemPromptConstants";
 import { KoeiroParam, DEFAULT_PARAM } from "@/features/constants/koeiroParam";
 import { getChatResponseStream } from "@/features/chat/openAiChat";
 import { Introduction } from "@/components/introduction";
@@ -16,6 +24,8 @@ import { Menu } from "@/components/menu";
 import { GitHubLink } from "@/components/githubLink";
 import { Meta } from "@/components/meta";
 import FaceRec from "@/components/faceRec";
+import IntroSlide from "@/components/IntroSlide";
+import { Configuration, OpenAIApi } from "openai";
 
 export default function Home() {
   const { viewer } = useContext(ViewerContext);
@@ -68,6 +78,29 @@ export default function Home() {
     [chatLog]
   );
 
+  // ログから話題を特定して，プロンプトの番号を返す
+  const getPromptType = async (log: Message[]) => {
+    const configuration = new Configuration({
+      apiKey: openAiKey,
+    });
+    const openai = new OpenAIApi(configuration);
+
+    let prompt = SELECT_PROMPT;
+    // "以下の文章から話題を特定し，話題の番号を返してください．話題の番号は，0. 研究室のテーマ全体に関する対話, 1. 「幼児の言語発達」に関する対話, 2. 「論文執筆支援」に関する対話, 3. 「認知症介護情報からの知識処理」に関する対話, 4. 「音声認識」に関する対話, 5. 「対話システム」に関する対話, 6. その他の対話，とします．\n\n";
+
+    prompt = prompt + log.join();
+    console.log("話題特定用プロンプト", prompt);
+
+    const response = await openai.createChatCompletion({
+      model: "gpt-4",
+      messages: [{ role: "system", content: prompt }],
+    });
+
+    const answer = response.data.choices[0].message?.content;
+    console.log("話題特定結果：", answer);
+    return answer;
+  };
+
   /**
    * 文ごとに音声を直列でリクエストしながら再生する
    */
@@ -110,6 +143,26 @@ export default function Home() {
         { role: "user", content: newMessage },
       ];
       setChatLog(messageLog);
+
+      // TODO: チャットログから話題を特定して，システムプロンプトを選択
+      const promptType = 0; // 話題（0. 研究室のテーマ全体に関する対話, 1. 「幼児の言語発達」に関する対話, 2. 「論文執筆支援」に関する対話, 3. 「認知症介護情報からの知識処理」に関する対話, 4. 「音声認識」に関する対話, 5. 「対話システム」に関する対話, 6. その他の対話）
+      getPromptType(messageLog).then((prompt) => {});
+
+      if (promptType == 0) {
+        setSystemPrompt(SYSTEM_PROMPT);
+      } else if (promptType == 1) {
+        setSystemPrompt(SYSTEM_PROMPT_1);
+      } else if (promptType == 2) {
+        setSystemPrompt(SYSTEM_PROMPT_2);
+      } else if (promptType == 3) {
+        setSystemPrompt(SYSTEM_PROMPT_3);
+      } else if (promptType == 4) {
+        setSystemPrompt(SYSTEM_PROMPT_4);
+      } else if (promptType == 5) {
+        setSystemPrompt(SYSTEM_PROMPT_5);
+      } else {
+        setSystemPrompt(SYSTEM_PROMPT);
+      }
 
       // Chat GPTへ
       const messages: Message[] = [
@@ -250,6 +303,7 @@ export default function Home() {
           borderRadius: "0.5rem",
           fontWeight: "bold",
           color: "whitesmoke",
+          zIndex: "990",
         }}
         onClick={() => {
           setOnCamera(true);
@@ -257,21 +311,7 @@ export default function Home() {
       >
         カメラオン
       </button>
-      <button
-        style={{
-          backgroundColor: "#B31312",
-          padding: ".5rem 1rem",
-          margin: "5rem 0",
-          borderRadius: "0.5rem",
-          fontWeight: "bold",
-          color: "whitesmoke",
-        }}
-        onClick={() => {
-          setOnCamera(false);
-        }}
-      >
-        カメラオフ
-      </button>
+      <IntroSlide />
       {onCamera ? <FaceRec onChatProcessStart={handleSendChat} /> : undefined}
     </div>
   );
