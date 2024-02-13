@@ -8,6 +8,8 @@ type Props = {
   isSpeaking: boolean | null;
   setIsSpeaking: React.Dispatch<React.SetStateAction<boolean|null>>,
   isStreaming: boolean | null;
+  sentencesLength: number | null;
+  speakTimes: number | null;
 };
 
 /**
@@ -21,7 +23,9 @@ export const MessageInputContainer = ({
   onChatProcessStart,
   isSpeaking,
   setIsSpeaking,
-  isStreaming
+  isStreaming,
+  sentencesLength,
+  speakTimes
 }: Props) => {
   const [userMessage, setUserMessage] = useState("");
   const [speechRecognition, setSpeechRecognition] =
@@ -109,25 +113,42 @@ export const MessageInputContainer = ({
   // [たぶん解決]ときどき，しゃべらなくなる（isSpeakigがtrueとfalseが逆になってる）．マウント時とか関係ない？
   useDidUpdateEffect(() => {
     // TODO: ときどき自分の声を認識しちゃうから，0.5秒だけ待機して，録音開始を遅らせる => だめだ．少し認識しちゃう．．．
-    console.log("isSpeakingを更新: ", isSpeaking);
+    // console.log("isSpeakingを更新: ", isSpeaking);
     
     // 発話終了時
     // if (!isSpeaking) {
     // setTimeout(() => {
     console.log("isStreaming: ", isStreaming);
     console.log("isSpeaking: ", isSpeaking);
-    if (!isSpeaking && !isStreaming) { // 会話中ではなく，かつストリーミング中でないとき
-        speechRecognition?.start();
-        setIsMicRecording(true);
-        console.log("録音開始");
-        // }
-      // }, 1000)
+    console.log("speakTimes: ", speakTimes);
+    console.log("sentencesLength: ", sentencesLength);
+
+
+    if (!isStreaming) {
+      if (speakTimes == sentencesLength) {
+        if (!isSpeaking) {
+          speechRecognition?.start();
+          setIsMicRecording(true);
+          console.log("録音開始");
+        }
+      }
     }
-    if(isSpeaking || isStreaming){ // 会話中，もしくはストリーミング中は録音できないようにする
-      speechRecognition?.abort();
-      setIsMicRecording(false);
-      console.log("録音終了");
-    }
+
+
+
+
+    // if (!isSpeaking && !isStreaming) { // 会話中ではなく，かつストリーミング中でないとき
+    //     speechRecognition?.start();
+    //     setIsMicRecording(true);
+    //     console.log("録音開始");
+    //     // }
+    //   // }, 1000)
+    // }
+    // if(isSpeaking || isStreaming){ // 会話中，もしくはストリーミング中は録音できないようにする
+    //   speechRecognition?.abort();
+    //   setIsMicRecording(false);
+    //   console.log("録音終了");
+    // }
   }, [isSpeaking]);
 
   useEffect(() => {

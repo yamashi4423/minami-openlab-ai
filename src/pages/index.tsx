@@ -42,6 +42,16 @@ export default function Home() {
   const [isSpeaking, setIsSpeaking] = useState<boolean | null>(false); // 話しているかどうか
   const [isStreaming, setIsStreaming] = useState<boolean | null>(false); // ストリームしているかどうか
   const [topicNumber, setTopicNumber] = useState<number | null>(6); // トピック番号
+  const [sentencesLength, setSentencesLength] = useState<number | null>(0); //ストリーミング処理の最後の区切りの回数
+  const [speakTimes, setSpeakTimes] = useState<number>(0); //speakの処理の回数
+
+
+  const CountSpeakTimes = (num: number) => {
+    setSpeakTimes((speakTimes) => {
+      return speakTimes + num;
+    });
+  }
+
 
   useEffect(() => {
     // https://de-milestones.com/next-js_environmental_variables_unread/
@@ -170,6 +180,7 @@ export default function Home() {
         screenplay,
         viewer,
         koeiromapKey,
+        CountSpeakTimes,
         () => setIsSpeaking(true),
         () => setIsSpeaking(false)
       );
@@ -263,10 +274,13 @@ export default function Home() {
       const sentences = new Array<string>();
       try {
         setIsStreaming(true);
+        setSentencesLength(0);
+        setSpeakTimes(0);
         while (true) {
           const { done, value } = await reader.read();
           if (done) {
             setIsStreaming(false);
+            setSentencesLength(sentences.length);
             break;
           }
 
@@ -283,6 +297,7 @@ export default function Home() {
           const sentenceMatch = receivedMessage.match(
             /^(.+[。．！？\n]|.{10,}[、,])/
           );
+
           if (sentenceMatch && sentenceMatch[0]) {
             const sentence = sentenceMatch[0];
             sentences.push(sentence);
@@ -290,6 +305,7 @@ export default function Home() {
               .slice(sentence.length)
               .trimStart();
 
+            console.log(sentences)
             // 発話不要/不可能な文字列だった場合はスキップ
             if (
               !sentence.replace(
@@ -348,6 +364,8 @@ export default function Home() {
         isSpeaking={isSpeaking}
         setIsSpeaking={setIsSpeaking}
         isStreaming={isStreaming}
+        sentencesLength={sentencesLength}
+        speakTimes={speakTimes}
       />
       <Menu
         openAiKey={openAiKey}

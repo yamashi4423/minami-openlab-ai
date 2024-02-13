@@ -13,6 +13,7 @@ const createSpeakCharacter = () => {
     screenplay: Screenplay,
     viewer: Viewer,
     koeiroApiKey: string,
+    CountSpeakTimes: (speakTimes:number) => void,
     onStart?: () => void,
     onComplete?: () => void
   ) => {
@@ -34,6 +35,7 @@ const createSpeakCharacter = () => {
       ([audioBuffer]) => {
         console.log("onStart() 会話スタート");
         onStart?.();
+        
         // 話してないとき？
         if (!audioBuffer) {
           return;
@@ -44,6 +46,8 @@ const createSpeakCharacter = () => {
     );
     prevSpeakPromise.then(() => {
       onComplete?.();
+      CountSpeakTimes(1);
+      // console.log("テスト",speakTimes);
       console.log("onComplete() 会話終了（isSpeakingをFalseに）");
     });
   };
