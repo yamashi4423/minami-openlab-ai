@@ -39,18 +39,16 @@ export default function Home() {
   const [chatLog, setChatLog] = useState<Message[]>([]);
   const [assistantMessage, setAssistantMessage] = useState("");
   const [onCamera, setOnCamera] = useState<boolean | null>(false); // カメラを使ってるかどうか
-  const [isSpeaking, setIsSpeaking] = useState<boolean | null>(false); // 話しているかどうか
   const [isStreaming, setIsStreaming] = useState<boolean | null>(false); // ストリームしているかどうか
   const [topicNumber, setTopicNumber] = useState<number | null>(6); // トピック番号
   const [sentencesLength, setSentencesLength] = useState<number | null>(0); //ストリーミング処理の最後の区切りの回数
   const [speakTimes, setSpeakTimes] = useState<number>(0); //speakの処理の回数
 
 
-  const CountSpeakTimes = (num: number) => {
+  const CountSpeakTimes = (num:number) => {
     setSpeakTimes((speakTimes) => {
       return speakTimes + num;
-    });
-  }
+    });}
 
 
   useEffect(() => {
@@ -181,8 +179,6 @@ export default function Home() {
         viewer,
         koeiromapKey,
         CountSpeakTimes,
-        () => setIsSpeaking(true),
-        () => setIsSpeaking(false)
       );
       console.log("音声を再生");
     },
@@ -297,7 +293,7 @@ export default function Home() {
           const sentenceMatch = receivedMessage.match(
             /^(.+[。．！？\n]|.{10,}[、,])/
           );
-
+          
           if (sentenceMatch && sentenceMatch[0]) {
             const sentence = sentenceMatch[0];
             sentences.push(sentence);
@@ -361,10 +357,8 @@ export default function Home() {
       <MessageInputContainer
         isChatProcessing={chatProcessing}
         onChatProcessStart={handleSendChat}
-        isSpeaking={isSpeaking}
-        setIsSpeaking={setIsSpeaking}
         isStreaming={isStreaming}
-        sentencesLength={sentencesLength}
+        sentencesLength = {sentencesLength}
         speakTimes={speakTimes}
       />
       <Menu

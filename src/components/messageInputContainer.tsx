@@ -5,8 +5,6 @@ import { useState, useEffect, useCallback } from "react";
 type Props = {
   isChatProcessing: boolean;
   onChatProcessStart: (text: string) => void;
-  isSpeaking: boolean | null;
-  setIsSpeaking: React.Dispatch<React.SetStateAction<boolean|null>>,
   isStreaming: boolean | null;
   sentencesLength: number | null;
   speakTimes: number | null;
@@ -21,8 +19,6 @@ type Props = {
 export const MessageInputContainer = ({
   isChatProcessing,
   onChatProcessStart,
-  isSpeaking,
-  setIsSpeaking,
   isStreaming,
   sentencesLength,
   speakTimes
@@ -53,7 +49,6 @@ export const MessageInputContainer = ({
   const handleRecognitionEnd = useCallback(() => {
     setIsMicRecording(false);
     // TODO: 
-    setIsSpeaking(false);   // 会話が終了したとみなす（録音が再度開始されることに注意）
     console.log("handleRecognitionEnd：録音終了");
     // speechRecognition?.start();
     // setIsMicRecording(true);
@@ -88,7 +83,6 @@ export const MessageInputContainer = ({
     }
 
     // 音声認識の初期化・設定
-    if (!isSpeaking) {
       const recognition = new SpeechRecognition();
       recognition.lang = "ja-JP";
       recognition.interimResults = true; // 認識の途中結果を返す
@@ -98,14 +92,13 @@ export const MessageInputContainer = ({
       recognition.addEventListener("end", handleRecognitionEnd);
 
       setSpeechRecognition(recognition);
-    }
 
     // 1秒ごとに音声認識
     // const intervalId = setInterval(() => {
     //   recognition?.start();
     //   setIsMicRecording(true);
     // }, 1000);
-  }, [handleRecognitionResult, handleRecognitionEnd, isSpeaking]);
+  }, [handleRecognitionResult, handleRecognitionEnd]);
 
   // これ一番最初実行してね？？？
   // ときどき，ストリーミング中に自分の声を認識しちゃう（文字起こしされてもOpenAIAPIは叩くわけではなさそう）
@@ -119,18 +112,15 @@ export const MessageInputContainer = ({
     // if (!isSpeaking) {
     // setTimeout(() => {
     console.log("isStreaming: ", isStreaming);
-    console.log("isSpeaking: ", isSpeaking);
     console.log("speakTimes: ", speakTimes);
     console.log("sentencesLength: ", sentencesLength);
 
 
     if (!isStreaming) {
       if (speakTimes == sentencesLength) {
-        if (!isSpeaking) {
-          speechRecognition?.start();
-          setIsMicRecording(true);
-          console.log("録音開始");
-        }
+        speechRecognition?.start();
+        setIsMicRecording(true);
+        console.log("録音開始");
       }
     }
 
@@ -149,7 +139,7 @@ export const MessageInputContainer = ({
     //   setIsMicRecording(false);
     //   console.log("録音終了");
     // }
-  }, [isSpeaking]);
+  }, [speakTimes]);
 
   useEffect(() => {
     if (!isChatProcessing) {
