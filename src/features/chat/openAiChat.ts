@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { Message } from "../messages/messages";
 
-const MODEL_NAME = "gpt-4";
+const MODEL_NAME = "gpt-3.5-turbo";
 
 export async function getChatResponse(messages: Message[], apiKey: string) {
   if (!apiKey) {
