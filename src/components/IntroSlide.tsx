@@ -14,6 +14,13 @@ import { EffectFade, Navigation, Pagination } from "swiper/modules";
 // Import Swiper styles
 import "swiper/css";
 
+const imgStyle = {
+  margin: "auto", 
+  display: "block", 
+  maxHeight: "75vh", 
+  borderRadius: "1rem"
+}
+
 function IntroSlide({ slideId }: { slideId: number | null }) {
   const [isSelective, setIsSelective] = useState<boolean | null>(false); // 選択式にするかどうか
   const slides = [
@@ -42,13 +49,14 @@ function IntroSlide({ slideId }: { slideId: number | null }) {
         clickable: true,
       }}
       modules={[EffectFade, Navigation, Pagination]}
-      className="mySwiper"
+      className="mySwiper, bg-white"
       style={{
         zIndex: "0",
         width: "60vw",
+        maxHeight: "90vh",
         margin: "0 0 0 auto",
-        padding: "2rem 2rem 0 2rem",
-        borderRadius: "0.5rem",
+        padding: "1rem",
+        borderRadius: "3rem",
       }}
     >
       {/* {} */}
@@ -57,15 +65,15 @@ function IntroSlide({ slideId }: { slideId: number | null }) {
           return (
             <SwiperSlide
               key={key}
-              style={{ zIndex: "-10", borderRadius: "0.5rem" }}
+              style={{ zIndex: "-10"}}
             >
-              <img src={`slides/${slide}`} />
+              <img style = {imgStyle} src={`slides/${slide}`} />
             </SwiperSlide>
           );
         })
       ) : (
-        <SwiperSlide style={{ zIndex: "0", borderRadius: "0.5rem" }}>
-          <img src={`slides/slide${slideId}.png`} />
+        <SwiperSlide style={{ zIndex: "0"}}>
+          <img style = {imgStyle} src={`slides/slide${slideId}.png`} />
         </SwiperSlide>
       )}
       <div
