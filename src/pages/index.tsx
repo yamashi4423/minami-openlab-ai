@@ -26,7 +26,7 @@ import { Meta } from "@/components/meta";
 import FaceRec from "@/components/faceRec";
 import IntroSlide from "@/components/IntroSlide";
 //@ts-ignore
-import { OpenAI } from "openai";
+import { OpenAI, OpenAIApi } from "openai";
 
 export default function Home() {
   const { viewer } = useContext(ViewerContext);
@@ -44,12 +44,11 @@ export default function Home() {
   const [sentencesLength, setSentencesLength] = useState<number | null>(0); //ストリーミング処理の最後の区切りの回数
   const [speakTimes, setSpeakTimes] = useState<number>(0); //speakの処理の回数
 
-
-  const CountSpeakTimes = (num:number) => {
+  const CountSpeakTimes = (num: number) => {
     setSpeakTimes((speakTimes) => {
       return speakTimes + num;
-    });}
-
+    });
+  };
 
   useEffect(() => {
     // https://de-milestones.com/next-js_environmental_variables_unread/
@@ -174,12 +173,7 @@ export default function Home() {
       onStart?: () => void,
       onEnd?: () => void
     ) => {
-      speakCharacter(
-        screenplay,
-        viewer,
-        koeiromapKey,
-        CountSpeakTimes,
-      );
+      speakCharacter(screenplay, viewer, koeiromapKey, CountSpeakTimes);
       console.log("音声を再生");
     },
     [viewer, koeiromapKey]
@@ -293,7 +287,7 @@ export default function Home() {
           const sentenceMatch = receivedMessage.match(
             /^(.+[。．！？\n]|.{10,}[、,])/
           );
-          
+
           if (sentenceMatch && sentenceMatch[0]) {
             const sentence = sentenceMatch[0];
             sentences.push(sentence);
@@ -301,7 +295,7 @@ export default function Home() {
               .slice(sentence.length)
               .trimStart();
 
-            console.log(sentences)
+            console.log(sentences);
             // 発話不要/不可能な文字列だった場合はスキップ
             if (
               !sentence.replace(
@@ -358,7 +352,7 @@ export default function Home() {
         isChatProcessing={chatProcessing}
         onChatProcessStart={handleSendChat}
         isStreaming={isStreaming}
-        sentencesLength = {sentencesLength}
+        sentencesLength={sentencesLength}
         speakTimes={speakTimes}
       />
       <Menu
