@@ -1,28 +1,28 @@
-import { Configuration, OpenAIApi } from "openai";
+import OpenAI from "openai";
 import { Message } from "../messages/messages";
 
-const MODEL_NAME = "gpt-4";
+const MODEL_NAME = "gpt-3.5-turbo";
 
 export async function getChatResponse(messages: Message[], apiKey: string) {
   if (!apiKey) {
     throw new Error("Invalid API Key");
   }
 
-  const configuration = new Configuration({
+  const configuration = {
     apiKey: apiKey,
-  });
+  };
   // ブラウザからAPIを叩くときに発生するエラーを無くすworkaround
   // https://github.com/openai/openai-node/issues/6#issuecomment-1492814621
-  delete configuration.baseOptions.headers["User-Agent"];
+  // delete configuration.baseOptions.headers["User-Agent"];
 
-  const openai = new OpenAIApi(configuration);
+  const openai = new OpenAI(configuration);
 
-  const { data } = await openai.createChatCompletion({
+  const { choices } = await openai.chat.completions.create({
     model: MODEL_NAME,
     messages: messages,
   });
 
-  const [aiRes] = data.choices;
+  const [aiRes] = choices;
   const message = aiRes.message?.content || "エラーが発生しました";
 
   return { message: message };
