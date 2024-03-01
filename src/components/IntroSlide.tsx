@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 // Import Swiper React components
 import { Swiper, SwiperSlide } from "swiper/react";
+import Image from "next/image";
 
 // Import Swiper styles
 import "swiper/css";
@@ -15,11 +16,12 @@ import { EffectFade, Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 
 const imgStyle = {
-  margin: "auto", 
-  display: "block", 
-  maxHeight: "75vh", 
-  borderRadius: "1rem"
-}
+  margin: "auto",
+  display: "block",
+  maxHeight: "75vh",
+  maxWidth: "50vw",
+  borderRadius: "1rem",
+};
 
 function IntroSlide({ slideId }: { slideId: number | null }) {
   const [isSelective, setIsSelective] = useState<boolean | null>(false); // 選択式にするかどうか
@@ -56,24 +58,48 @@ function IntroSlide({ slideId }: { slideId: number | null }) {
         maxHeight: "90vh",
         margin: "0 0 0 auto",
         padding: "1rem",
-        borderRadius: "3rem", 
+        borderRadius: "3rem",
       }}
     >
       {/* {} */}
       {isSelective ? (
         slides.map((slide, key) => {
           return (
-            <SwiperSlide
-              key={key}
-              style={{ zIndex: "-10"}}
-            >
-              <img style = {imgStyle} src={`slides/${slide}`} />
+            <SwiperSlide key={key} style={{ zIndex: "-10" }}>
+              <div style={imgStyle}>
+                <Image
+                  alt="circle_thumbnail"
+                  src={`/slides/${slide}`}
+                  width={300}
+                  height={300}
+                  objectFit={"cover"}
+                  layout={"responsive"}
+                />
+              </div>
             </SwiperSlide>
           );
         })
       ) : (
-        <SwiperSlide style={{ zIndex: "0"}}>
-          <img style = {imgStyle} src={`slides/slide${slideId}.png`} />
+        <SwiperSlide style={{ zIndex: "0" }}>
+          <div style={imgStyle}>
+            {/* <Image
+              src={`/slides/slide${slideId}.png`}
+              alt="slides"
+              // fill
+              layout="fill"
+              objectFit="contain"
+              // width="10000"
+              // height="10000"
+            /> */}
+            <Image
+              alt="circle_thumbnail"
+              src={`/slides/slide${slideId}.png`}
+              width={300}
+              height={300}
+              objectFit={"cover"}
+              layout={"responsive"}
+            />
+          </div>
         </SwiperSlide>
       )}
       <div
