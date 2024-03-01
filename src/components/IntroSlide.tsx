@@ -56,7 +56,7 @@ function IntroSlide({ slideId }: { slideId: number | null }) {
         maxHeight: "90vh",
         margin: "0 0 0 auto",
         padding: "1rem",
-        borderRadius: "3rem",
+        borderRadius: "3rem", 
       }}
     >
       {/* {} */}
