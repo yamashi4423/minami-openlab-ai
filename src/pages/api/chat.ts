@@ -1,4 +1,4 @@
-import { Configuration, OpenAIApi } from "openai";
+import { OpenAI } from "openai";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -20,18 +20,25 @@ export default async function handler(
     return;
   }
 
-  const configuration = new Configuration({
+  const configuration = {
     apiKey: apiKey,
-  });
+    dangerouslyAllowBrowser: true,
+  };
 
-  const openai = new OpenAIApi(configuration);
+  const openai = new OpenAI(configuration);
 
-  const { data } = await openai.createChatCompletion({
+  // openai version: 3.2.1 => 4.28.4
+  // const { data } = await openai.createChatCompletion({
+  //   model: "gpt-3.5-turbo",
+  //   messages: req.body.messages,
+  // });
+  const { choices } = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: req.body.messages,
   });
 
-  const [aiRes] = data.choices;
+  // const [aiRes] = data.choices;
+  const [aiRes] = choices;
   const message = aiRes.message?.content || "エラーが発生しました";
 
   res.status(200).json({ message: message });
