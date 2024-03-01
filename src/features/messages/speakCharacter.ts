@@ -13,8 +13,7 @@ const createSpeakCharacter = () => {
     screenplay: Screenplay,
     viewer: Viewer,
     koeiroApiKey: string,
-    onStart?: () => void,
-    onComplete?: () => void
+    CountSpeakTimes: (speakTimes:number) => void,
   ) => {
     const fetchPromise = prevFetchPromise.then(async () => {
       const now = Date.now();
@@ -33,7 +32,7 @@ const createSpeakCharacter = () => {
     prevSpeakPromise = Promise.all([fetchPromise, prevSpeakPromise]).then(
       ([audioBuffer]) => {
         console.log("onStart() 会話スタート");
-        onStart?.();
+        
         // 話してないとき？
         if (!audioBuffer) {
           return;
@@ -43,7 +42,8 @@ const createSpeakCharacter = () => {
       }
     );
     prevSpeakPromise.then(() => {
-      onComplete?.();
+      CountSpeakTimes(1);
+      // console.log("テスト",speakTimes);
       console.log("onComplete() 会話終了（isSpeakingをFalseに）");
     });
   };

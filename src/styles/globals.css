@@ -47,3 +47,7 @@ body {
     display: none;
   }
 }
+
+.swiper {
+  z-index: 0;
+}

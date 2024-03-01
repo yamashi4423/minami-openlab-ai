@@ -56,6 +56,10 @@ export class Viewer {
 
       this._scene.add(this.model.vrm.scene);
 
+      // this.model.vrm?.humanoid
+      //   .getNormalizedBoneNode("hips")
+      //   ?.position.set(1000, 10, 0);
+
       // アニメーションの読み込み
       const vrma = await loadVRMAnimation(buildUrl("/idle_loop.vrma"));
       if (vrma) this.model.loadAnimation(vrma);
