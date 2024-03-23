@@ -109,7 +109,7 @@ export default function Home() {
   const [chatProcessing, setChatProcessing] = useState(false);
   const [chatLog, setChatLog] = useState<Message[]>([]);
   const [assistantMessage, setAssistantMessage] = useState("");
-  const [onCamera, setOnCamera] = useState<boolean | null>(false); // カメラを使ってるかどうか
+  // const [onCamera, setOnCamera] = useState<boolean | null>(false); // カメラを使ってるかどうか
   const [isStreaming, setIsStreaming] = useState<boolean | null>(false); // ストリームしているかどうか
   const [topicNumber, setTopicNumber] = useState<number | null>(6); // トピック番号
   const [sentencesLength, setSentencesLength] = useState<number | null>(0); //ストリーミング処理の最後の区切りの回数
@@ -117,6 +117,7 @@ export default function Home() {
   const [functionCallingInput, setFunctionCallingInput] = useState<string>(""); // ファンクションコーリングで使用するトークン数
 
   const [totalTokenCounts, setTotalTokenCounts] = useState<number>(0); // OpenAI 通信前にGet通信した時のトークン数
+  const [isFirstStartRec, setIsFirstStartRec] = useState<boolean>(false); // 一番はじめの録音を始めているかどうか
 
   const CountSpeakTimes = (num: number) => {
     setSpeakTimes((speakTimes) => {
@@ -488,6 +489,8 @@ export default function Home() {
         isStreaming={isStreaming}
         sentencesLength={sentencesLength}
         speakTimes={speakTimes}
+        isFirstStartRec={isFirstStartRec}
+        setIsFirstStartRec={setIsFirstStartRec}
       />
       <Menu
         openAiKey={openAiKey}
@@ -507,7 +510,7 @@ export default function Home() {
       {/* <GitHubLink /> */}
       <IntroSlide slideId={topicNumber} />
       <div style={{ width: "100%", display: "flex", justifyContent: "right" }}>
-        <button
+        {/* <button
           style={{
             backgroundColor: "#29ADB2",
             padding: ".5rem 1rem",
@@ -521,8 +524,7 @@ export default function Home() {
             setOnCamera(true);
           }}
         >
-          カメラオン
-        </button>
+        </button> */}
         <button
           style={{
             backgroundColor: "#D80032",
@@ -540,7 +542,7 @@ export default function Home() {
           リセット
         </button>
       </div>
-      {onCamera ? <FaceRec onChatProcessStart={handleSendChat} /> : undefined}
+      {/* {onCamera ? <FaceRec onChatProcessStart={handleSendChat} /> : undefined} */}
     </div>
   );
 }
