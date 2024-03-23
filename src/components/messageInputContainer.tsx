@@ -8,6 +8,8 @@ type Props = {
   isStreaming: boolean | null;
   sentencesLength: number | null;
   speakTimes: number | null;
+  isFirstStartRec: boolean;
+  setIsFirstStartRec: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 /**
@@ -21,7 +23,9 @@ export const MessageInputContainer = ({
   onChatProcessStart,
   isStreaming,
   sentencesLength,
-  speakTimes
+  speakTimes,
+  isFirstStartRec,
+  setIsFirstStartRec,
 }: Props) => {
   const [userMessage, setUserMessage] = useState("");
   const [speechRecognition, setSpeechRecognition] =
@@ -48,7 +52,7 @@ export const MessageInputContainer = ({
   // 無音が続いた場合も終了する
   const handleRecognitionEnd = useCallback(() => {
     setIsMicRecording(false);
-    // TODO: 
+    // TODO:
     console.log("handleRecognitionEnd：録音終了");
     // speechRecognition?.start();
     // setIsMicRecording(true);
@@ -83,15 +87,15 @@ export const MessageInputContainer = ({
     }
 
     // 音声認識の初期化・設定
-      const recognition = new SpeechRecognition();
-      recognition.lang = "ja-JP";
-      recognition.interimResults = true; // 認識の途中結果を返す
-      recognition.continuous = false; // 発言の終了時に認識を終了する（Trueにすると1分以上音声認識してくれるけど，自分の声を認識しちゃう）
+    const recognition = new SpeechRecognition();
+    recognition.lang = "ja-JP";
+    recognition.interimResults = true; // 認識の途中結果を返す
+    recognition.continuous = false; // 発言の終了時に認識を終了する（Trueにすると1分以上音声認識してくれるけど，自分の声を認識しちゃう）
 
-      recognition.addEventListener("result", handleRecognitionResult);
-      recognition.addEventListener("end", handleRecognitionEnd);
+    recognition.addEventListener("result", handleRecognitionResult);
+    recognition.addEventListener("end", handleRecognitionEnd);
 
-      setSpeechRecognition(recognition);
+    setSpeechRecognition(recognition);
 
     // 1秒ごとに音声認識
     // const intervalId = setInterval(() => {
@@ -107,7 +111,7 @@ export const MessageInputContainer = ({
   useDidUpdateEffect(() => {
     // TODO: ときどき自分の声を認識しちゃうから，0.5秒だけ待機して，録音開始を遅らせる => だめだ．少し認識しちゃう．．．
     // console.log("isSpeakingを更新: ", isSpeaking);
-    
+
     // 発話終了時
     // if (!isSpeaking) {
     // setTimeout(() => {
@@ -115,17 +119,24 @@ export const MessageInputContainer = ({
     console.log("speakTimes: ", speakTimes);
     console.log("sentencesLength: ", sentencesLength);
 
-
     if (!isStreaming) {
+      // // 会話が開始していないとき（アクセス時など）は、録音を開始しない
+      // if (speakTimes == 0 && sentencesLength == 0) {
+      //   setIsMicRecording(false);
+      // } else if (speakTimes == sentencesLength) {
+      //   speechRecognition?.start();
+      //   setIsMicRecording(true);
+      //   console.log("録音開始");
+      // }
+      // 会話が開始していないとき（アクセス時など）は、録音を開始しない
+
+      // 旧バージョン
       if (speakTimes == sentencesLength) {
         speechRecognition?.start();
         setIsMicRecording(true);
         console.log("録音開始");
       }
     }
-
-
-
 
     // if (!isSpeaking && !isStreaming) { // 会話中ではなく，かつストリーミング中でないとき
     //     speechRecognition?.start();
@@ -148,13 +159,40 @@ export const MessageInputContainer = ({
   }, [isChatProcessing]);
 
   return (
-    <MessageInput
-      userMessage={userMessage}
-      isChatProcessing={isChatProcessing}
-      isMicRecording={isMicRecording}
-      onChangeUserMessage={(e) => setUserMessage(e.target.value)}
-      onClickMicButton={handleClickMicButton}
-      onClickSendButton={handleClickSendButton}
-    />
+    <>
+      {isFirstStartRec ? (
+        <MessageInput
+          userMessage={userMessage}
+          isChatProcessing={isChatProcessing}
+          isMicRecording={isMicRecording}
+          onChangeUserMessage={(e) => setUserMessage(e.target.value)}
+          onClickMicButton={handleClickMicButton}
+          onClickSendButton={handleClickSendButton}
+        />
+      ) : (
+        <button
+          className="absolute bottom-0 z-20 w-screen"
+          style={{
+            backgroundColor: "#29ADB2",
+            padding: ".5rem 1rem",
+            margin: "1rem auto",
+            borderRadius: "3rem",
+            fontWeight: "bold",
+            color: "whitesmoke",
+            zIndex: "990",
+            width: "50%",
+            left: "25%",
+          }}
+          onClick={() => {
+            setIsFirstStartRec(true); // 一番初めの会話をスタートする
+            onChatProcessStart("こんにちは"); // こんにちは
+          }}
+        >
+          会話をスタート！
+          <br />
+          （以降は自動で会話が進みます）
+        </button>
+      )}
+    </>
   );
 };

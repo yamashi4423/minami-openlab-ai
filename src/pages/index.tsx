@@ -27,6 +27,77 @@ import FaceRec from "@/components/faceRec";
 import IntroSlide from "@/components/IntroSlide";
 //@ts-ignore
 import { OpenAI, OpenAIApi } from "openai";
+import {
+  collection,
+  addDoc,
+  getDoc,
+  doc,
+  updateDoc,
+  setDoc,
+} from "firebase/firestore";
+import db from "@/lib/firebase";
+import assert from "node:assert";
+import { getEncoding, encodingForModel } from "js-tiktoken";
+
+async function addTokenCounts(
+  year: number,
+  month: number,
+  newTokenCounts: number
+) {
+  try {
+    const docRef = await addDoc(collection(db, String(year), String(month)), {
+      token: newTokenCounts,
+    });
+    console.log("Document written with ID: ", docRef.id);
+  } catch (e) {
+    console.error("Error adding document: ", e);
+  }
+}
+
+async function getTokenCounts(year: number, month: number) {
+  const docRef = doc(db, String(year), String(month));
+  const docSnap = await getDoc(docRef);
+  let tokenCounts = 0;
+
+  if (docSnap.exists()) {
+    console.log("Token Number:", docSnap.data().token);
+    tokenCounts = docSnap.data().token;
+  } else {
+    // ドキュメントがない場合（月が変わった場合），ドキュメントを追加
+    // docSnap.data() will be undefined in this case
+    console.log("No such document!");
+    await setDoc(doc(db, String(year), String(month)), {
+      token: 0,
+    });
+    // addTokenCounts(year, month, 0); // ドキュメントを追加．トークン数は0で初期化
+  }
+
+  return tokenCounts;
+}
+
+// 指定したyear,monthドキュメントのtokenフィールドを更新する関数
+async function updateTokenCounts(
+  newTokenCounts: number,
+  year: number,
+  month: number
+) {
+  const monthRef = doc(db, String(year), String(month));
+  await updateDoc(monthRef, {
+    token: newTokenCounts,
+  });
+}
+
+function getToken(text: string) {
+  const enc = getEncoding("cl100k_base");
+  // assert(enc.decode(enc.encode(text)) === text);
+  return enc.encode(text).length;
+}
+
+const now = new Date();
+const year = now.getFullYear();
+const month = now.getMonth() + 1;
+
+const TOKEN_LIMITS = 10_000_000; // 使用できる最大のトークン数．参考：gpt-3.5-turbo-0125	$0.50 / 1M tokens	$1.50 / 1M tokens（https://openai.com/pricing）
 
 export default function Home() {
   const { viewer } = useContext(ViewerContext);
@@ -38,11 +109,15 @@ export default function Home() {
   const [chatProcessing, setChatProcessing] = useState(false);
   const [chatLog, setChatLog] = useState<Message[]>([]);
   const [assistantMessage, setAssistantMessage] = useState("");
-  const [onCamera, setOnCamera] = useState<boolean | null>(false); // カメラを使ってるかどうか
+  // const [onCamera, setOnCamera] = useState<boolean | null>(false); // カメラを使ってるかどうか
   const [isStreaming, setIsStreaming] = useState<boolean | null>(false); // ストリームしているかどうか
   const [topicNumber, setTopicNumber] = useState<number | null>(6); // トピック番号
   const [sentencesLength, setSentencesLength] = useState<number | null>(0); //ストリーミング処理の最後の区切りの回数
   const [speakTimes, setSpeakTimes] = useState<number>(0); //speakの処理の回数
+  const [functionCallingInput, setFunctionCallingInput] = useState<string>(""); // ファンクションコーリングで使用するトークン数
+
+  const [totalTokenCounts, setTotalTokenCounts] = useState<number>(0); // OpenAI 通信前にGet通信した時のトークン数
+  const [isFirstStartRec, setIsFirstStartRec] = useState<boolean>(false); // 一番はじめの録音を始めているかどうか
 
   const CountSpeakTimes = (num: number) => {
     setSpeakTimes((speakTimes) => {
@@ -55,6 +130,11 @@ export default function Home() {
     setOpenAiKey(String(process.env.NEXT_PUBLIC_OPENAI_API_KEY));
     setKoeiromapKey(String(process.env.NEXT_PUBLIC_COEIROMAP_API_KEY));
 
+    // 今月のトークン数を取得
+    (async () => {
+      setTotalTokenCounts(await getTokenCounts(year, month));
+    })();
+
     // ローカルストレージから読み込む
     // if (window.localStorage.getItem("chatVRMParams")) {
     //   const params = JSON.parse(
@@ -64,6 +144,20 @@ export default function Home() {
     //   setKoeiroParam(params.koeiroParam);
     //   setChatLog(params.chatLog);
     // }
+
+    // firebase との接続
+    // (async () => {
+    //   try {
+    //     const docRef = await addDoc(collection(db, "users"), {
+    //       first: "Ada",
+    //       last: "Lovelace",
+    //       born: 1815,
+    //     });
+    //     console.log("Document written with ID: ", docRef.id);
+    //   } catch (e) {
+    //     console.error("Error adding document: ", e);
+    //   }
+    // })();
   }, []);
 
   useEffect(() => {
@@ -104,8 +198,9 @@ export default function Home() {
     // atterance = log.slice(-2)[0].content;
     // atterance = log.slice(-1)[0].content;
 
-    const utterances = log.slice(-3).map((entry) => entry.content);
-    const utteranceContent = utterances.join();
+    const utterances = log.slice(-3).map((entry) => entry.content); // 直近3つのログの配列
+    const utteranceContent = utterances.join(); // 直近3つのログをつなげたもの．FunctionCallingの入力
+    setFunctionCallingInput(utteranceContent); // トークン数を数えるために，FcuntionCallingの入力文字列を保存
     console.log("話題特定用プロンプト", utteranceContent);
 
     const functionGetTopic = {
@@ -193,6 +288,15 @@ export default function Home() {
 
       if (newMessage == null) return;
 
+      console.log(totalTokenCounts);
+      // 規定Token数を超えているかどうかを判定
+      if (totalTokenCounts > TOKEN_LIMITS) {
+        setAssistantMessage(
+          "Token数オーバーのため，使用を制限しています．月初めにご利用ください．"
+        );
+        return;
+      }
+
       setChatProcessing(true);
       // ユーザーの発言を追加して表示
       const messageLog: Message[] = [
@@ -271,6 +375,37 @@ export default function Home() {
           if (done) {
             setIsStreaming(false);
             setSentencesLength(sentences.length);
+            // console.log("sentenses: ", sentences);
+            // const token = getToken(sentences[-1]);
+            const totalSentense = sentences.join("");
+            const chatContents = chatLog.map((chat) => chat.content);
+            const totalChatContents = chatContents.join("");
+            // console.log("newMessage: ", newMessage);
+            // console.log("totalSentense: ", totalSentense);
+            // console.log("totalChatContents: ", totalChatContents);
+            console.log("totalTokenCounts: ", totalTokenCounts);
+            const sumTokenCounts = getToken(
+              newMessage +
+                totalSentense +
+                totalChatContents +
+                functionCallingInput
+            );
+            // console.log(
+            //   "トークン数：",
+            //   getToken(
+            //     newMessage +
+            //       totalSentense +
+            //       totalChatContents +
+            //       functionCallingInput
+            //   )
+            // );
+            // トークン数をupdate
+            updateTokenCounts(totalTokenCounts + sumTokenCounts, year, month);
+
+            setTotalTokenCounts((count) => {
+              return count + sumTokenCounts;
+            });
+
             break;
           }
 
@@ -295,7 +430,7 @@ export default function Home() {
               .slice(sentence.length)
               .trimStart();
 
-            console.log(sentences);
+            // console.log(sentences);
             // 発話不要/不可能な文字列だった場合はスキップ
             if (
               !sentence.replace(
@@ -354,6 +489,8 @@ export default function Home() {
         isStreaming={isStreaming}
         sentencesLength={sentencesLength}
         speakTimes={speakTimes}
+        isFirstStartRec={isFirstStartRec}
+        setIsFirstStartRec={setIsFirstStartRec}
       />
       <Menu
         openAiKey={openAiKey}
@@ -373,7 +510,7 @@ export default function Home() {
       {/* <GitHubLink /> */}
       <IntroSlide slideId={topicNumber} />
       <div style={{ width: "100%", display: "flex", justifyContent: "right" }}>
-        <button
+        {/* <button
           style={{
             backgroundColor: "#29ADB2",
             padding: ".5rem 1rem",
@@ -387,8 +524,7 @@ export default function Home() {
             setOnCamera(true);
           }}
         >
-          カメラオン
-        </button>
+        </button> */}
         <button
           style={{
             backgroundColor: "#D80032",
@@ -406,7 +542,7 @@ export default function Home() {
           リセット
         </button>
       </div>
-      {onCamera ? <FaceRec onChatProcessStart={handleSendChat} /> : undefined}
+      {/* {onCamera ? <FaceRec onChatProcessStart={handleSendChat} /> : undefined} */}
     </div>
   );
 }
