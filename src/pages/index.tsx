@@ -104,7 +104,7 @@ export default function Home() {
 
   const [systemPrompt, setSystemPrompt] = useState(SYSTEM_PROMPT);
   const [openAiKey, setOpenAiKey] = useState("");
-  const [koeiromapKey, setKoeiromapKey] = useState("");
+  // const [koeiromapKey, setKoeiromapKey] = useState("");
   const [koeiroParam, setKoeiroParam] = useState<KoeiroParam>(DEFAULT_PARAM);
   const [chatProcessing, setChatProcessing] = useState(false);
   const [chatLog, setChatLog] = useState<Message[]>([]);
@@ -127,13 +127,15 @@ export default function Home() {
 
   useEffect(() => {
     // https://de-milestones.com/next-js_environmental_variables_unread/
-    setOpenAiKey(String(process.env.NEXT_PUBLIC_OPENAI_API_KEY));
-    setKoeiromapKey(String(process.env.NEXT_PUBLIC_COEIROMAP_API_KEY));
 
     // 今月のトークン数を取得
     (async () => {
       setTotalTokenCounts(await getTokenCounts(year, month));
     })();
+
+    setOpenAiKey(String(process.env.NEXT_PUBLIC_OPENAI_API_KEY));
+
+    // setKoeiromapKey(String(process.env.NEXT_PUBLIC_COEIROMAP_API_KEY));
 
     // ローカルストレージから読み込む
     // if (window.localStorage.getItem("chatVRMParams")) {
@@ -144,20 +146,6 @@ export default function Home() {
     //   setKoeiroParam(params.koeiroParam);
     //   setChatLog(params.chatLog);
     // }
-
-    // firebase との接続
-    // (async () => {
-    //   try {
-    //     const docRef = await addDoc(collection(db, "users"), {
-    //       first: "Ada",
-    //       last: "Lovelace",
-    //       born: 1815,
-    //     });
-    //     console.log("Document written with ID: ", docRef.id);
-    //   } catch (e) {
-    //     console.error("Error adding document: ", e);
-    //   }
-    // })();
   }, []);
 
   useEffect(() => {
@@ -181,6 +169,7 @@ export default function Home() {
     [chatLog]
   );
 
+  // TODO: ファンクションコーリングはindexで使用不可
   // ログから話題を特定して，プロンプトの番号を返す
   const getTopic = async (log: Message[]) => {
     const configuration = {
@@ -268,10 +257,12 @@ export default function Home() {
       onStart?: () => void,
       onEnd?: () => void
     ) => {
-      speakCharacter(screenplay, viewer, koeiromapKey, CountSpeakTimes);
+      speakCharacter(screenplay, viewer, CountSpeakTimes);
+      // speakCharacter(screenplay, viewer, koeiromapKey, CountSpeakTimes);
       console.log("音声を再生");
     },
-    [viewer, koeiromapKey]
+    [viewer]
+    // [viewer, koeiromapKey]
   );
 
   /**
@@ -492,7 +483,7 @@ export default function Home() {
         isFirstStartRec={isFirstStartRec}
         setIsFirstStartRec={setIsFirstStartRec}
       />
-      <Menu
+      {/* <Menu
         openAiKey={openAiKey}
         systemPrompt={systemPrompt}
         chatLog={chatLog}
@@ -506,7 +497,7 @@ export default function Home() {
         handleClickResetChatLog={() => setChatLog([])}
         handleClickResetSystemPrompt={() => setSystemPrompt(SYSTEM_PROMPT)}
         onChangeKoeiromapKey={setKoeiromapKey}
-      />
+      /> */}
       {/* <GitHubLink /> */}
       <IntroSlide slideId={topicNumber} />
       <div style={{ width: "100%", display: "flex", justifyContent: "right" }}>
