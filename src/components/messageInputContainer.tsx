@@ -52,7 +52,6 @@ export const MessageInputContainer = ({
   // 無音が続いた場合も終了する
   const handleRecognitionEnd = useCallback(() => {
     setIsMicRecording(false);
-    // console.log("handleRecognitionEnd：録音終了");
   }, []);
 
   // マイクボタンをおしたとき
@@ -96,11 +95,6 @@ export const MessageInputContainer = ({
   }, [handleRecognitionResult, handleRecognitionEnd]);
 
   useDidUpdateEffect(() => {
-    // 発話終了時
-    // console.log("isStreaming: ", isStreaming);
-    // console.log("speakTimes: ", speakTimes);
-    // console.log("sentencesLength: ", sentencesLength);
-
     if (!isStreaming) {
       if (speakTimes == sentencesLength) {
         speechRecognition?.start();
