@@ -35,7 +35,7 @@ export const MessageInputContainer = ({
   // 音声認識の結果を処理する
   const handleRecognitionResult = useCallback(
     (event: SpeechRecognitionEvent) => {
-      console.log("handleRecognitionResult");
+      // console.log("handleRecognitionResult");
       const text = event.results[0][0].transcript;
       setUserMessage(text);
 
@@ -52,10 +52,6 @@ export const MessageInputContainer = ({
   // 無音が続いた場合も終了する
   const handleRecognitionEnd = useCallback(() => {
     setIsMicRecording(false);
-    // TODO:
-    // console.log("handleRecognitionEnd：録音終了");
-    // speechRecognition?.start();
-    // setIsMicRecording(true);
   }, []);
 
   // マイクボタンをおしたとき
@@ -68,7 +64,7 @@ export const MessageInputContainer = ({
     }
 
     speechRecognition?.start();
-    console.log("録音開始");
+    // console.log("録音開始");
     setIsMicRecording(true);
   }, [isMicRecording, speechRecognition]);
 
@@ -98,19 +94,7 @@ export const MessageInputContainer = ({
     setSpeechRecognition(recognition);
   }, [handleRecognitionResult, handleRecognitionEnd]);
 
-  // これ一番最初実行してね？？？
-  // ときどき，ストリーミング中に自分の声を認識しちゃう（文字起こしされてもOpenAIAPIは叩くわけではなさそう）
-  // あともしかすると，音声認識の時間が短くなっちゃってる
-  // [たぶん解決]ときどき，しゃべらなくなる（isSpeakigがtrueとfalseが逆になってる）．マウント時とか関係ない？
   useDidUpdateEffect(() => {
-    // TODO: ときどき自分の声を認識しちゃうから，0.5秒だけ待機して，録音開始を遅らせる => だめだ．少し認識しちゃう．．．
-    // 発話終了時
-    // if (!isSpeaking) {
-    // setTimeout(() => {
-    // console.log("isStreaming: ", isStreaming);
-    // console.log("speakTimes: ", speakTimes);
-    // console.log("sentencesLength: ", sentencesLength);
-
     if (!isStreaming) {
       if (speakTimes == sentencesLength) {
         speechRecognition?.start();
@@ -153,7 +137,7 @@ export const MessageInputContainer = ({
           }}
           onClick={() => {
             setIsFirstStartRec(true); // 一番初めの会話をスタートする
-            onChatProcessStart("こんにちは"); // こんにちは
+            onChatProcessStart("こんにちは"); // こんにちはを発話
           }}
         >
           会話をスタート！

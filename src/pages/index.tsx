@@ -65,12 +65,10 @@ async function getTokenCounts(year: number, month: number) {
     tokenCounts = docSnap.data().token;
   } else {
     // ドキュメントがない場合（月が変わった場合），ドキュメントを追加
-    // docSnap.data() will be undefined in this case
     console.log("No such document!");
     await setDoc(doc(db, String(year), String(month)), {
       token: 0,
     });
-    // addTokenCounts(year, month, 0); // ドキュメントを追加．トークン数は0で初期化
   }
 
   return tokenCounts;
@@ -90,7 +88,6 @@ async function updateTokenCounts(
 
 function getToken(text: string) {
   const enc = getEncoding("cl100k_base");
-  // assert(enc.decode(enc.encode(text)) === text);
   return enc.encode(text).length;
 }
 
@@ -108,7 +105,6 @@ export default function Home() {
   const [chatProcessing, setChatProcessing] = useState(false);
   const [chatLog, setChatLog] = useState<Message[]>([]);
   const [assistantMessage, setAssistantMessage] = useState("");
-  // const [onCamera, setOnCamera] = useState<boolean | null>(false); // カメラを使ってるかどうか
   const [isStreaming, setIsStreaming] = useState<boolean | null>(false); // ストリームしているかどうか
   const [topicNumber, setTopicNumber] = useState<number | null>(6); // トピック番号
   const [sentencesLength, setSentencesLength] = useState<number | null>(0); //ストリーミング処理の最後の区切りの回数
@@ -179,10 +175,8 @@ export default function Home() {
       body: JSON.stringify({ utteranceContent: utteranceContent }),
     });
     setFunctionCallingInput(utteranceContent); // トークン数を数えるために，FcuntionCallingの入力文字列を保存
-    // console.log("話題特定用プロンプト", utteranceContent);
 
     const data = await res.json();
-    // console.log("fuction calling", data.message);
     const topic = data.topic;
 
     return topic;
@@ -198,11 +192,8 @@ export default function Home() {
       onEnd?: () => void
     ) => {
       speakCharacter(screenplay, viewer, CountSpeakTimes);
-      // speakCharacter(screenplay, viewer, koeiromapKey, CountSpeakTimes);
-      // console.log("音声を再生");
     },
     [viewer]
-    // [viewer, koeiromapKey]
   );
 
   /**
@@ -210,11 +201,6 @@ export default function Home() {
    */
   const handleSendChat = useCallback(
     async (text: string) => {
-      // if (!openAiKey) {
-      //   setAssistantMessage("APIキーが入力されていません");
-      //   return;
-      // }
-
       const newMessage = text;
 
       if (newMessage == null) return;
@@ -239,14 +225,6 @@ export default function Home() {
       getTopic(messageLog).then((topic: number) => {
         setTopicNumber(topic);
       });
-
-      // const response = await openai.chat.completions.create({
-      //   model: "gpt-4",
-      //   messages: [{ role: "system", content: prompt }],
-      //   messages: [{ role: "user", content: atterance }],
-      //   temperature: 0.0,
-      //   functions: [functionGetTopic],
-      // });
 
       if (topicNumber == 0) {
         setSystemPrompt(SYSTEM_PROMPT);
@@ -307,6 +285,7 @@ export default function Home() {
                 totalChatContents +
                 functionCallingInput
             );
+
             // トークン数をupdate
             updateTokenCounts(totalTokenCounts + sumTokenCounts, year, month);
 
@@ -351,8 +330,6 @@ export default function Home() {
             const aiText = `${tag} ${sentence}`;
             const aiTalks = textsToScreenplay([aiText], koeiroParam);
             aiTextLog += aiText;
-            // console.log("aiText: ", aiText);
-            // console.log("aiTalks: ", aiTalks);
 
             // 文ごとに音声を生成 & 再生、返答を表示
             const currentAssistantMessage = sentences.join(" ");

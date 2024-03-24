@@ -40,9 +40,6 @@ export default async function handler(
     const openai = new OpenAI(configuration);
 
     const utteranceContent = req.body.utteranceContent; // 直近3つのログををつなげたもの。
-    // const utteranceContent = utterances.join(); // 直近3つのログをつなげたもの．FunctionCallingの入力
-
-    // setFunctionCallingInput(utteranceContent); // トークン数を数えるために，FcuntionCallingの入力文字列を保存
 
     const functionGetTopic = {
       name: "getTopic",
@@ -70,7 +67,6 @@ export default async function handler(
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
-      //messages: [{ role: "system", content: prompt }],
       messages: [{ role: "user", content: utteranceContent }],
       temperature: 0.0,
       functions: [functionGetTopic],
