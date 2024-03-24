@@ -35,7 +35,7 @@ export const MessageInputContainer = ({
   // 音声認識の結果を処理する
   const handleRecognitionResult = useCallback(
     (event: SpeechRecognitionEvent) => {
-      console.log("handleRecognitionResult");
+      // console.log("handleRecognitionResult");
       const text = event.results[0][0].transcript;
       setUserMessage(text);
 
@@ -52,10 +52,7 @@ export const MessageInputContainer = ({
   // 無音が続いた場合も終了する
   const handleRecognitionEnd = useCallback(() => {
     setIsMicRecording(false);
-    // TODO:
-    console.log("handleRecognitionEnd：録音終了");
-    // speechRecognition?.start();
-    // setIsMicRecording(true);
+    // console.log("handleRecognitionEnd：録音終了");
   }, []);
 
   // マイクボタンをおしたとき
@@ -68,7 +65,7 @@ export const MessageInputContainer = ({
     }
 
     speechRecognition?.start();
-    console.log("録音開始");
+    // console.log("録音開始");
     setIsMicRecording(true);
   }, [isMicRecording, speechRecognition]);
 
@@ -96,60 +93,21 @@ export const MessageInputContainer = ({
     recognition.addEventListener("end", handleRecognitionEnd);
 
     setSpeechRecognition(recognition);
-
-    // 1秒ごとに音声認識
-    // const intervalId = setInterval(() => {
-    //   recognition?.start();
-    //   setIsMicRecording(true);
-    // }, 1000);
   }, [handleRecognitionResult, handleRecognitionEnd]);
 
-  // これ一番最初実行してね？？？
-  // ときどき，ストリーミング中に自分の声を認識しちゃう（文字起こしされてもOpenAIAPIは叩くわけではなさそう）
-  // あともしかすると，音声認識の時間が短くなっちゃってる
-  // [たぶん解決]ときどき，しゃべらなくなる（isSpeakigがtrueとfalseが逆になってる）．マウント時とか関係ない？
   useDidUpdateEffect(() => {
-    // TODO: ときどき自分の声を認識しちゃうから，0.5秒だけ待機して，録音開始を遅らせる => だめだ．少し認識しちゃう．．．
-    // console.log("isSpeakingを更新: ", isSpeaking);
-
     // 発話終了時
-    // if (!isSpeaking) {
-    // setTimeout(() => {
-    console.log("isStreaming: ", isStreaming);
-    console.log("speakTimes: ", speakTimes);
-    console.log("sentencesLength: ", sentencesLength);
+    // console.log("isStreaming: ", isStreaming);
+    // console.log("speakTimes: ", speakTimes);
+    // console.log("sentencesLength: ", sentencesLength);
 
     if (!isStreaming) {
-      // // 会話が開始していないとき（アクセス時など）は、録音を開始しない
-      // if (speakTimes == 0 && sentencesLength == 0) {
-      //   setIsMicRecording(false);
-      // } else if (speakTimes == sentencesLength) {
-      //   speechRecognition?.start();
-      //   setIsMicRecording(true);
-      //   console.log("録音開始");
-      // }
-      // 会話が開始していないとき（アクセス時など）は、録音を開始しない
-
-      // 旧バージョン
       if (speakTimes == sentencesLength) {
         speechRecognition?.start();
         setIsMicRecording(true);
-        console.log("録音開始");
+        // console.log("録音開始");
       }
     }
-
-    // if (!isSpeaking && !isStreaming) { // 会話中ではなく，かつストリーミング中でないとき
-    //     speechRecognition?.start();
-    //     setIsMicRecording(true);
-    //     console.log("録音開始");
-    //     // }
-    //   // }, 1000)
-    // }
-    // if(isSpeaking || isStreaming){ // 会話中，もしくはストリーミング中は録音できないようにする
-    //   speechRecognition?.abort();
-    //   setIsMicRecording(false);
-    //   console.log("録音終了");
-    // }
   }, [speakTimes]);
 
   useEffect(() => {
@@ -185,7 +143,7 @@ export const MessageInputContainer = ({
           }}
           onClick={() => {
             setIsFirstStartRec(true); // 一番初めの会話をスタートする
-            onChatProcessStart("こんにちは"); // こんにちは
+            onChatProcessStart("こんにちは"); // こんにちはを発話
           }}
         >
           会話をスタート！
