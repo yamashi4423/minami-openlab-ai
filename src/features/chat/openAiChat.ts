@@ -147,6 +147,9 @@ export async function getChatResponseStream(
                 console.log("カギカッコなし発生!!!", chunk);
                 json = await JSON.parse(chunk + "}"); //await追加 // TODO: ここが正しくパースできない。元のデータが壊れているため（デプロイ後）。
                 console.log("json: ", json);
+              } else if (chunk.replace("\n", "")[chunk.length - 1] == "}") {
+                // 最後がかぎかっこだけの場合（chunk: ' }'）
+                console.log("カギカッコだけ発生!!!", chunk);
               }
               // const messagePiece = json.choices[0].delta.content;
               const messagePiece = json.text;
