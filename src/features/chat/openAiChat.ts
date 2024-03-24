@@ -91,6 +91,7 @@ export async function getChatResponseStream(messages: Message[]) {
           done = doneReading;
 
           if (done) break;
+
           const chunkValue = await decoder.decode(value); //await追加
           parser.feed(chunkValue);
           const chunks = await chunkValue //await追加

@@ -360,12 +360,6 @@ export default function Home() {
   return (
     <div className={"font-M_PLUS_2"}>
       <Meta />
-      {/* <Introduction
-        openAiKey={openAiKey}
-        koeiroMapKey={koeiromapKey}
-        onChangeAiKey={setOpenAiKey}
-        onChangeKoeiromapKey={setKoeiromapKey}
-      /> */}
       <VrmViewer />
       <MessageInputContainer
         isChatProcessing={chatProcessing}
@@ -376,39 +370,9 @@ export default function Home() {
         isFirstStartRec={isFirstStartRec}
         setIsFirstStartRec={setIsFirstStartRec}
       />
-      {/* <Menu
-        openAiKey={openAiKey}
-        systemPrompt={systemPrompt}
-        chatLog={chatLog}
-        koeiroParam={koeiroParam}
-        assistantMessage={assistantMessage}
-        koeiromapKey={koeiromapKey}
-        onChangeAiKey={setOpenAiKey}
-        onChangeSystemPrompt={setSystemPrompt}
-        onChangeChatLog={handleChangeChatLog}
-        onChangeKoeiromapParam={setKoeiroParam}
-        handleClickResetChatLog={() => setChatLog([])}
-        handleClickResetSystemPrompt={() => setSystemPrompt(SYSTEM_PROMPT)}
-        onChangeKoeiromapKey={setKoeiromapKey}
-      /> */}
       {/* <GitHubLink /> */}
       <IntroSlide slideId={topicNumber} />
       <div style={{ width: "100%", display: "flex", justifyContent: "right" }}>
-        {/* <button
-          style={{
-            backgroundColor: "#29ADB2",
-            padding: ".5rem 1rem",
-            margin: "1rem 1rem ",
-            borderRadius: "0.5rem",
-            fontWeight: "bold",
-            color: "whitesmoke",
-            zIndex: "990",
-          }}
-          onClick={() => {
-            setOnCamera(true);
-          }}
-        >
-        </button> */}
         <button
           style={{
             backgroundColor: "#D80032",
