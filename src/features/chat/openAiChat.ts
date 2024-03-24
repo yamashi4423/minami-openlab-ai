@@ -100,6 +100,15 @@ export async function getChatResponseStream(
   //   console.log("generatedBios: ", generatedBios);
   // }
 
+  function isValidJSON(jsonString: string) {
+    try {
+      JSON.parse(jsonString);
+      return true; // JSON.parseが成功した場合
+    } catch (e) {
+      return false; // JSON.parseが失敗した場合
+    }
+  }
+
   const stream = new ReadableStream({
     async start(controller: ReadableStreamDefaultController) {
       const decoder = new TextDecoder();
@@ -120,22 +129,26 @@ export async function getChatResponseStream(
             .split("data:")
             .filter((val) => !!val && val.trim() !== "[DONE]");
           console.log("chunks: ", chunks);
-
-          // if (done) break;
-          // const data = decoder.decode(value);
-          // const chunks = data
-          //   .split("data:")
-          //   .filter((val) => !!val && val.trim() !== "[DONE]");
-          // console.log("chunks: ", chunks);
-          for (const chunk of chunks) {
-            const json = await JSON.parse(chunk); //await追加
-            console.log("json: ", json);
-            // const messagePiece = json.choices[0].delta.content;
-            const messagePiece = json.text;
-            if (!!messagePiece) {
-              controller.enqueue(messagePiece);
+          if (chunks[chunks.length - 1])
+            // if (done) break;
+            // const data = decoder.decode(value);
+            // const chunks = data
+            //   .split("data:")
+            //   .filter((val) => !!val && val.trim() !== "[DONE]");
+            // console.log("chunks: ", chunks);
+            for (const chunk of chunks) {
+              // 正しくJSONをパースできた場合
+              let json: any = { text: "" };
+              if (isValidJSON(chunk)) {
+                json = await JSON.parse(chunk); //await追加 // TODO: ここが正しくパースできない。元のデータが壊れているため（デプロイ後）。
+                console.log("json: ", json);
+              }
+              // const messagePiece = json.choices[0].delta.content;
+              const messagePiece = json.text;
+              if (!!messagePiece) {
+                controller.enqueue(messagePiece);
+              }
             }
-          }
         }
       } catch (error) {
         controller.error(error);
