@@ -16,8 +16,8 @@ export async function synthesizeVoiceApi(
   message: string,
   speakerX: number,
   speakerY: number,
-  style: TalkStyle,
-  apiKey: string
+  style: TalkStyle
+  // apiKey: string
 ) {
   // Free向けに感情を制限する
   const reducedStyle = reduceTalkStyle(style);
@@ -27,7 +27,7 @@ export async function synthesizeVoiceApi(
     speakerX: speakerX,
     speakerY: speakerY,
     style: reducedStyle,
-    apiKey: apiKey,
+    // apiKey: apiKey,
   };
 
   const res = await fetch("/api/tts", {
