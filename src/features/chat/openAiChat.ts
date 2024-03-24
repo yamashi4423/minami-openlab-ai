@@ -136,21 +136,24 @@ export async function getChatResponseStream(
             //   .split("data:")
             //   .filter((val) => !!val && val.trim() !== "[DONE]");
             // console.log("chunks: ", chunks);
+
             for (const chunk of chunks) {
               // 正しくJSONをパースできた場合
               let json: any = { text: "" };
               if (isValidJSON(chunk)) {
                 json = await JSON.parse(chunk); //await追加 // TODO: ここが正しくパースできない。元のデータが壊れているため（デプロイ後）。
                 console.log("json: ", json);
-              } else if (chunk.replace(/\n/g, "")[chunk.length - 1] == "}") {
-                // 最後がかぎかっこだけの場合（chunk: ' }'）
-                console.log("カギカッコだけ発生!!!", chunk);
-              } else if (chunk.replace(/\n/g, "")[chunk.length - 1] != "}") {
-                // 最後のかぎかっこがない場合（chunk: ' {"text":"興"'）
-                console.log("カギカッコなし発生!!!", chunk);
-                json = await JSON.parse(chunk + "}"); //await追加 // TODO: ここが正しくパースできない。元のデータが壊れているため（デプロイ後）。
-                console.log("json: ", json);
+              } else {
+                // json = { text: chunk.replace(/{|}|text|tex|ext|:|\n|\"|/g, "") };
+                json = { text: chunk.replace(/[{}"\n:]|text|tex|ext|/g, "") };
               }
+              // "{text: aaaa", "a}\n\n{", "text: bbbbbb}",
+
+              // {text: aaaa}\n\n{text: bbbbbb}",
+
+              // "aaaaabbbbbb"
+              // {, }, text, : , \n, _
+
               // const messagePiece = json.choices[0].delta.content;
               const messagePiece = json.text;
               if (!!messagePiece) {
