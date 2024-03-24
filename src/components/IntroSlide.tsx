@@ -82,15 +82,6 @@ function IntroSlide({ slideId }: { slideId: number | null }) {
       ) : (
         <SwiperSlide style={{ zIndex: "0" }}>
           <div style={imgStyle}>
-            {/* <Image
-              src={`/slides/slide${slideId}.png`}
-              alt="slides"
-              // fill
-              layout="fill"
-              objectFit="contain"
-              // width="10000"
-              // height="10000"
-            /> */}
             <Image
               alt="circle_thumbnail"
               src={`/slides/slide${slideId}.png`}

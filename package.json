@@ -16,6 +16,7 @@
     "canvas": "^2.11.2",
     "eslint": "8.36.0",
     "eslint-config-next": "13.2.4",
+    "eventsource-parser": "^1.1.2",
     "face-api.js": "^0.22.2",
     "firebase": "^10.8.1",
     "js-tiktoken": "^1.0.10",
