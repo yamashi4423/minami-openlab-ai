@@ -142,6 +142,11 @@ export async function getChatResponseStream(
               if (isValidJSON(chunk)) {
                 json = await JSON.parse(chunk); //await追加 // TODO: ここが正しくパースできない。元のデータが壊れているため（デプロイ後）。
                 console.log("json: ", json);
+              } else if (chunk[chunk.length - 1] != "}") {
+                // 最後のかぎかっこがない場合（chunk: ' {"text":"興"'）
+                console.log("カギカッコなし発生!!!", chunk);
+                json = await JSON.parse(chunk + "}"); //await追加 // TODO: ここが正しくパースできない。元のデータが壊れているため（デプロイ後）。
+                console.log("json: ", json);
               }
               // const messagePiece = json.choices[0].delta.content;
               const messagePiece = json.text;
