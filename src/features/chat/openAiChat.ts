@@ -113,10 +113,10 @@ export async function getChatResponseStream(
           done = doneReading;
 
           if (done) break;
-          const chunkValue = decoder.decode(value);
+          const chunkValue = await decoder.decode(value); //await追加
           console.log("chunkValue3: ", chunkValue);
           parser.feed(chunkValue);
-          const chunks = chunkValue
+          const chunks = await chunkValue //await追加
             .split("data:")
             .filter((val) => !!val && val.trim() !== "[DONE]");
           console.log("chunks: ", chunks);
@@ -128,7 +128,7 @@ export async function getChatResponseStream(
           //   .filter((val) => !!val && val.trim() !== "[DONE]");
           // console.log("chunks: ", chunks);
           for (const chunk of chunks) {
-            const json = JSON.parse(chunk);
+            const json = await JSON.parse(chunk); //await追加
             console.log("json: ", json);
             // const messagePiece = json.choices[0].delta.content;
             const messagePiece = json.text;
