@@ -81,7 +81,6 @@ export default async function handler(
 
     if (functionCall) {
       const args = JSON.parse(functionCall.arguments || "{}");
-      console.log("args: ", args.topic);
 
       if (args.topic == "幼児") {
         topic = 1;
