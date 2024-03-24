@@ -61,7 +61,7 @@ async function getTokenCounts(year: number, month: number) {
   let tokenCounts = 0;
 
   if (docSnap.exists()) {
-    console.log("Token Number:", docSnap.data().token);
+    // console.log("Token Number:", docSnap.data().token);
     tokenCounts = docSnap.data().token;
   } else {
     // ドキュメントがない場合（月が変わった場合），ドキュメントを追加
@@ -104,7 +104,6 @@ export default function Home() {
   const { viewer } = useContext(ViewerContext);
 
   const [systemPrompt, setSystemPrompt] = useState(SYSTEM_PROMPT);
-  // const [openAiKey, setOpenAiKey] = useState("");
   const [koeiroParam, setKoeiroParam] = useState<KoeiroParam>(DEFAULT_PARAM);
   const [chatProcessing, setChatProcessing] = useState(false);
   const [chatLog, setChatLog] = useState<Message[]>([]);
@@ -119,8 +118,6 @@ export default function Home() {
   const [totalTokenCounts, setTotalTokenCounts] = useState<number>(0); // OpenAI 通信前にGet通信した時のトークン数
   const [isFirstStartRec, setIsFirstStartRec] = useState<boolean>(false); // 一番はじめの録音を始めているかどうか
 
-  const [generatedBios, setGeneratedBios] = useState<string>("");
-
   const CountSpeakTimes = (num: number) => {
     setSpeakTimes((speakTimes) => {
       return speakTimes + num;
@@ -134,8 +131,6 @@ export default function Home() {
     (async () => {
       setTotalTokenCounts(await getTokenCounts(year, month));
     })();
-
-    // setOpenAiKey(String(process.env.NEXT_PUBLIC_OPENAI_API_KEY));
 
     // ローカルストレージから読み込む
     // if (window.localStorage.getItem("chatVRMParams")) {
@@ -187,7 +182,7 @@ export default function Home() {
     // console.log("話題特定用プロンプト", utteranceContent);
 
     const data = await res.json();
-    console.log("fuction calling", data.message);
+    // console.log("fuction calling", data.message);
     const topic = data.topic;
 
     return topic;
@@ -204,7 +199,7 @@ export default function Home() {
     ) => {
       speakCharacter(screenplay, viewer, CountSpeakTimes);
       // speakCharacter(screenplay, viewer, koeiromapKey, CountSpeakTimes);
-      console.log("音声を再生");
+      // console.log("音声を再生");
     },
     [viewer]
     // [viewer, koeiromapKey]
@@ -224,7 +219,6 @@ export default function Home() {
 
       if (newMessage == null) return;
 
-      console.log(totalTokenCounts);
       // 規定Token数を超えているかどうかを判定
       if (totalTokenCounts > TOKEN_LIMITS) {
         setAssistantMessage(
@@ -244,9 +238,7 @@ export default function Home() {
       // TODO: チャットログから話題を特定して，システムプロンプトを選択
       getTopic(messageLog).then((topic: number) => {
         setTopicNumber(topic);
-        console.log("topic: ", topicNumber);
       });
-      console.log("topic: ", topicNumber);
 
       // const response = await openai.chat.completions.create({
       //   model: "gpt-4",
@@ -272,9 +264,6 @@ export default function Home() {
         setSystemPrompt(SYSTEM_PROMPT);
       }
 
-      console.log("今回使用するシステムプロンプト：", topicNumber);
-      console.log("今回使用するシステムプロンプト：", systemPrompt);
-
       // Chat GPTへ
       const messages: Message[] = [
         // プロンプト
@@ -286,12 +275,7 @@ export default function Home() {
         ...messageLog,
       ];
 
-      // const stream = await getChatResponseStream(messages, openAiKey).catch(
-      const stream = await getChatResponseStream(
-        messages,
-        generatedBios,
-        setGeneratedBios
-      ).catch((e) => {
+      const stream = await getChatResponseStream(messages).catch((e) => {
         console.error(e);
         return null;
       });
@@ -314,30 +298,15 @@ export default function Home() {
           if (done) {
             setIsStreaming(false);
             setSentencesLength(sentences.length);
-            // console.log("sentenses: ", sentences);
-            // const token = getToken(sentences[-1]);
             const totalSentense = sentences.join("");
             const chatContents = chatLog.map((chat) => chat.content);
             const totalChatContents = chatContents.join("");
-            // console.log("newMessage: ", newMessage);
-            // console.log("totalSentense: ", totalSentense);
-            // console.log("totalChatContents: ", totalChatContents);
-            console.log("totalTokenCounts: ", totalTokenCounts);
             const sumTokenCounts = getToken(
               newMessage +
                 totalSentense +
                 totalChatContents +
                 functionCallingInput
             );
-            // console.log(
-            //   "トークン数：",
-            //   getToken(
-            //     newMessage +
-            //       totalSentense +
-            //       totalChatContents +
-            //       functionCallingInput
-            //   )
-            // );
             // トークン数をupdate
             updateTokenCounts(totalTokenCounts + sumTokenCounts, year, month);
 
@@ -369,7 +338,6 @@ export default function Home() {
               .slice(sentence.length)
               .trimStart();
 
-            // console.log(sentences);
             // 発話不要/不可能な文字列だった場合はスキップ
             if (
               !sentence.replace(
@@ -383,8 +351,8 @@ export default function Home() {
             const aiText = `${tag} ${sentence}`;
             const aiTalks = textsToScreenplay([aiText], koeiroParam);
             aiTextLog += aiText;
-            console.log("aiText: ", aiText);
-            console.log("aiTalks: ", aiTalks);
+            // console.log("aiText: ", aiText);
+            // console.log("aiTalks: ", aiTalks);
 
             // 文ごとに音声を生成 & 再生、返答を表示
             const currentAssistantMessage = sentences.join(" ");
@@ -415,12 +383,6 @@ export default function Home() {
   return (
     <div className={"font-M_PLUS_2"}>
       <Meta />
-      {/* <Introduction
-        openAiKey={openAiKey}
-        koeiroMapKey={koeiromapKey}
-        onChangeAiKey={setOpenAiKey}
-        onChangeKoeiromapKey={setKoeiromapKey}
-      /> */}
       <VrmViewer />
       <MessageInputContainer
         isChatProcessing={chatProcessing}
@@ -431,39 +393,9 @@ export default function Home() {
         isFirstStartRec={isFirstStartRec}
         setIsFirstStartRec={setIsFirstStartRec}
       />
-      {/* <Menu
-        openAiKey={openAiKey}
-        systemPrompt={systemPrompt}
-        chatLog={chatLog}
-        koeiroParam={koeiroParam}
-        assistantMessage={assistantMessage}
-        koeiromapKey={koeiromapKey}
-        onChangeAiKey={setOpenAiKey}
-        onChangeSystemPrompt={setSystemPrompt}
-        onChangeChatLog={handleChangeChatLog}
-        onChangeKoeiromapParam={setKoeiroParam}
-        handleClickResetChatLog={() => setChatLog([])}
-        handleClickResetSystemPrompt={() => setSystemPrompt(SYSTEM_PROMPT)}
-        onChangeKoeiromapKey={setKoeiromapKey}
-      /> */}
       {/* <GitHubLink /> */}
       <IntroSlide slideId={topicNumber} />
       <div style={{ width: "100%", display: "flex", justifyContent: "right" }}>
-        {/* <button
-          style={{
-            backgroundColor: "#29ADB2",
-            padding: ".5rem 1rem",
-            margin: "1rem 1rem ",
-            borderRadius: "0.5rem",
-            fontWeight: "bold",
-            color: "whitesmoke",
-            zIndex: "990",
-          }}
-          onClick={() => {
-            setOnCamera(true);
-          }}
-        >
-        </button> */}
         <button
           style={{
             backgroundColor: "#D80032",

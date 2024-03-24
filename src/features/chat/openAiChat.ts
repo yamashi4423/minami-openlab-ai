@@ -34,17 +34,12 @@ export async function getChatResponse(messages: Message[], apiKey: string) {
   return { message: message };
 }
 
-export async function getChatResponseStream(
-  messages: Message[],
-  generatedBios: string,
-  setGeneratedBios: React.Dispatch<React.SetStateAction<string>>
-) {
+export async function getChatResponseStream(messages: Message[]) {
   const apiKey = process.env.OPENAI_API_KEY;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${apiKey}`,
   };
-  console.log("messages: ", messages);
 
   const response = await fetch("/api/generate", {
     method: "POST",
@@ -53,7 +48,6 @@ export async function getChatResponseStream(
     },
     body: JSON.stringify({ messages: messages }),
   });
-  console.log("response: ", response);
 
   if (!response.ok) {
     throw new Error(response.statusText);
@@ -63,42 +57,19 @@ export async function getChatResponseStream(
   if (!data) {
     return;
   }
-  console.log("data: ", data);
 
   const reader = data.getReader();
-  console.log("reader: ", reader);
 
   const onParseGPT = (event: ParsedEvent | ReconnectInterval) => {
     if (event.type === "event") {
       const data = event.data;
       try {
         const text = JSON.parse(data).text ?? "";
-        setGeneratedBios((prev) => prev + text);
       } catch (e) {
         console.error(e);
       }
     }
   };
-
-  // const reader = res.body?.getReader();
-  // if (res.status !== 200 || !reader) {
-  //   throw new Error("Something went wrong");
-  // }
-
-  // const reader = data.getReader();
-  // const decoder = new TextDecoder();
-  // const parser = createParser(onParseGPT);
-  // let done = false;
-  // while (!done) {
-  //   const { value, done: doneReading } = await reader.read();
-  //   console.log("value2: ", value);
-  //   console.log("done2: ", done);
-  //   done = doneReading;
-  //   const chunkValue = decoder.decode(value);
-  //   parser.feed(chunkValue);
-  //   console.log("chunkValue2: ", chunkValue);
-  //   console.log("generatedBios: ", generatedBios);
-  // }
 
   const stream = new ReadableStream({
     async start(controller: ReadableStreamDefaultController) {
@@ -108,29 +79,17 @@ export async function getChatResponseStream(
       try {
         while (true) {
           const { value, done: doneReading } = await reader.read();
-          console.log("value3: ", value);
-          console.log("done3: ", done);
           done = doneReading;
 
           if (done) break;
           const chunkValue = decoder.decode(value);
-          console.log("chunkValue3: ", chunkValue);
           parser.feed(chunkValue);
           const chunks = chunkValue
             .split("data:")
             .filter((val) => !!val && val.trim() !== "[DONE]");
-          console.log("chunks: ", chunks);
 
-          // if (done) break;
-          // const data = decoder.decode(value);
-          // const chunks = data
-          //   .split("data:")
-          //   .filter((val) => !!val && val.trim() !== "[DONE]");
-          // console.log("chunks: ", chunks);
           for (const chunk of chunks) {
             const json = JSON.parse(chunk);
-            console.log("json: ", json);
-            // const messagePiece = json.choices[0].delta.content;
             const messagePiece = json.text;
             if (!!messagePiece) {
               controller.enqueue(messagePiece);
@@ -145,37 +104,6 @@ export async function getChatResponseStream(
       }
     },
   });
-
-  // const stream = new ReadableStream({
-  //   async start(controller: ReadableStreamDefaultController) {
-  //     const decoder = new TextDecoder("utf-8");
-  //     console.log("decoder: ", decoder);
-  //     try {
-  //       while (true) {
-  //         const { done, value } = await reader.read();
-  //         // console.log("value: ", value);
-  //         // console.log("done: ", done);
-  //         if (done) break;
-  //         const data = decoder.decode(value);
-  //         const chunks = data
-  //           .split("data:")
-  //           .filter((val) => !!val && val.trim() !== "[DONE]");
-  //         for (const chunk of chunks) {
-  //           const json = JSON.parse(chunk);
-  //           const messagePiece = json.choices[0].delta.content;
-  //           if (!!messagePiece) {
-  //             controller.enqueue(messagePiece);
-  //           }
-  //         }
-  //       }
-  //     } catch (error) {
-  //       controller.error(error);
-  //     } finally {
-  //       reader.releaseLock();
-  //       controller.close();
-  //     }
-  //   },
-  // });
 
   return stream;
 }
