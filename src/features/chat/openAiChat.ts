@@ -145,7 +145,7 @@ export async function getChatResponseStream(
                 console.log("json: ", json);
               } else {
                 // json = { text: chunk.replace(/{|}|text|tex|ext|:|\n|\"|/g, "") };
-                json = { text: chunk.replace(/[{}"\n:]|text|tex|ext|/g, "") };
+                json = { text: chunk.replace(/[{}"\n:\s]|text|tex|ext|/g, "") };
               }
               // "{text: aaaa", "a}\n\n{", "text: bbbbbb}",
 
