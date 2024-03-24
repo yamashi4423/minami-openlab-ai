@@ -30,7 +30,7 @@ const createSpeakCharacter = () => {
     prevFetchPromise = fetchPromise;
     prevSpeakPromise = Promise.all([fetchPromise, prevSpeakPromise]).then(
       ([audioBuffer]) => {
-        console.log("onStart() 会話スタート");
+        // console.log("onStart() 会話スタート");
 
         // 話してないとき？
         if (!audioBuffer) {
@@ -43,7 +43,7 @@ const createSpeakCharacter = () => {
     prevSpeakPromise.then(() => {
       CountSpeakTimes(1);
       // console.log("テスト",speakTimes);
-      console.log("onComplete() 会話終了（isSpeakingをFalseに）");
+      // console.log("onComplete() 会話終了（isSpeakingをFalseに）");
     });
   };
 };

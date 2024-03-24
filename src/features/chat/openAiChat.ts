@@ -71,6 +71,15 @@ export async function getChatResponseStream(messages: Message[]) {
     }
   };
 
+  function isValidJSON(jsonString: string) {
+    try {
+      JSON.parse(jsonString);
+      return true; // JSON.parseが成功した場合
+    } catch (e) {
+      return false; // JSON.parseが失敗した場合
+    }
+  }
+
   const stream = new ReadableStream({
     async start(controller: ReadableStreamDefaultController) {
       const decoder = new TextDecoder();
@@ -82,14 +91,22 @@ export async function getChatResponseStream(messages: Message[]) {
           done = doneReading;
 
           if (done) break;
-          const chunkValue = decoder.decode(value);
+
+          const chunkValue = await decoder.decode(value); //await追加
           parser.feed(chunkValue);
-          const chunks = chunkValue
+          const chunks = await chunkValue //await追加
             .split("data:")
             .filter((val) => !!val && val.trim() !== "[DONE]");
 
           for (const chunk of chunks) {
-            const json = JSON.parse(chunk);
+            // 正しくJSONをパースできた場合
+            let json: any = { text: "" };
+            if (isValidJSON(chunk)) {
+              json = await JSON.parse(chunk); //await追加 // TODO: ここが正しくパースできない。元のデータが壊れているため（デプロイ後）。
+            } else {
+              json = { text: chunk.replace(/[{}"\n:\s]|text|tex|ext|/g, "") };
+            }
+
             const messagePiece = json.text;
             if (!!messagePiece) {
               controller.enqueue(messagePiece);
