@@ -19,6 +19,7 @@ import {
 } from "@/features/constants/systemPromptConstants";
 import { KoeiroParam, DEFAULT_PARAM } from "@/features/constants/koeiroParam";
 import { getChatResponseStream } from "@/features/chat/openAiChat";
+// import { getChatResponseStream } from "@/utils/openAiChat";
 import { Introduction } from "@/components/introduction";
 import { Menu } from "@/components/menu";
 import { GitHubLink } from "@/components/githubLink";
@@ -103,8 +104,7 @@ export default function Home() {
   const { viewer } = useContext(ViewerContext);
 
   const [systemPrompt, setSystemPrompt] = useState(SYSTEM_PROMPT);
-  const [openAiKey, setOpenAiKey] = useState("");
-  // const [koeiromapKey, setKoeiromapKey] = useState("");
+  // const [openAiKey, setOpenAiKey] = useState("");
   const [koeiroParam, setKoeiroParam] = useState<KoeiroParam>(DEFAULT_PARAM);
   const [chatProcessing, setChatProcessing] = useState(false);
   const [chatLog, setChatLog] = useState<Message[]>([]);
@@ -118,6 +118,8 @@ export default function Home() {
 
   const [totalTokenCounts, setTotalTokenCounts] = useState<number>(0); // OpenAI 通信前にGet通信した時のトークン数
   const [isFirstStartRec, setIsFirstStartRec] = useState<boolean>(false); // 一番はじめの録音を始めているかどうか
+
+  const [generatedBios, setGeneratedBios] = useState<string>("");
 
   const CountSpeakTimes = (num: number) => {
     setSpeakTimes((speakTimes) => {
@@ -133,9 +135,7 @@ export default function Home() {
       setTotalTokenCounts(await getTokenCounts(year, month));
     })();
 
-    setOpenAiKey(String(process.env.NEXT_PUBLIC_OPENAI_API_KEY));
-
-    // setKoeiromapKey(String(process.env.NEXT_PUBLIC_COEIROMAP_API_KEY));
+    // setOpenAiKey(String(process.env.NEXT_PUBLIC_OPENAI_API_KEY));
 
     // ローカルストレージから読み込む
     // if (window.localStorage.getItem("chatVRMParams")) {
@@ -215,10 +215,10 @@ export default function Home() {
    */
   const handleSendChat = useCallback(
     async (text: string) => {
-      if (!openAiKey) {
-        setAssistantMessage("APIキーが入力されていません");
-        return;
-      }
+      // if (!openAiKey) {
+      //   setAssistantMessage("APIキーが入力されていません");
+      //   return;
+      // }
 
       const newMessage = text;
 
@@ -286,12 +286,15 @@ export default function Home() {
         ...messageLog,
       ];
 
-      const stream = await getChatResponseStream(messages, openAiKey).catch(
-        (e) => {
-          console.error(e);
-          return null;
-        }
-      );
+      // const stream = await getChatResponseStream(messages, openAiKey).catch(
+      const stream = await getChatResponseStream(
+        messages,
+        generatedBios,
+        setGeneratedBios
+      ).catch((e) => {
+        console.error(e);
+        return null;
+      });
       if (stream == null) {
         setChatProcessing(false);
         return;
@@ -406,7 +409,7 @@ export default function Home() {
       setChatLog(messageLogAssistant);
       setChatProcessing(false);
     },
-    [systemPrompt, chatLog, handleSpeakAi, openAiKey, koeiroParam]
+    [systemPrompt, chatLog, handleSpeakAi, koeiroParam]
   );
 
   return (
