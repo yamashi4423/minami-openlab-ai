@@ -114,8 +114,6 @@ export default function Home() {
   const [totalTokenCounts, setTotalTokenCounts] = useState<number>(0); // OpenAI 通信前にGet通信した時のトークン数
   const [isFirstStartRec, setIsFirstStartRec] = useState<boolean>(false); // 一番はじめの録音を始めているかどうか
 
-  const [generatedBios, setGeneratedBios] = useState<string>("");
-
   const CountSpeakTimes = (num: number) => {
     setSpeakTimes((speakTimes) => {
       return speakTimes + num;
@@ -255,11 +253,7 @@ export default function Home() {
         ...messageLog,
       ];
 
-      const stream = await getChatResponseStream(
-        messages,
-        generatedBios,
-        setGeneratedBios
-      ).catch((e) => {
+      const stream = await getChatResponseStream(messages).catch((e) => {
         console.error(e);
         return null;
       });

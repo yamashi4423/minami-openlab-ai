@@ -34,11 +34,7 @@ export async function getChatResponse(messages: Message[], apiKey: string) {
   return { message: message };
 }
 
-export async function getChatResponseStream(
-  messages: Message[],
-  generatedBios: string,
-  setGeneratedBios: React.Dispatch<React.SetStateAction<string>>
-) {
+export async function getChatResponseStream(messages: Message[]) {
   const apiKey = process.env.OPENAI_API_KEY;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -69,7 +65,6 @@ export async function getChatResponseStream(
       const data = event.data;
       try {
         const text = JSON.parse(data).text ?? "";
-        setGeneratedBios((prev) => prev + text);
       } catch (e) {
         console.error(e);
       }
