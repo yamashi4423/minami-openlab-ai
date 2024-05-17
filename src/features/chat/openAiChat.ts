@@ -7,7 +7,7 @@ import {
 } from "eventsource-parser";
 import { useState } from "react";
 
-const MODEL_NAME = "gpt-3.5-turbo";
+const MODEL_NAME = "gpt-4o";
 
 export async function getChatResponse(messages: Message[], apiKey: string) {
   if (!apiKey) {
